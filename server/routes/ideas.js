@@ -69,17 +69,51 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /api/ideas/stats/overview - Get platform statistics
+router.get('/stats/overview', async (req, res) => {
+  try {
+    const statsQuery = `
+      SELECT
+        COUNT(*) as total_ideas,
+        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_ideas,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_ideas,
+        SUM(votes_count) as total_votes,
+        SUM(comments_count) as total_comments,
+        SUM(views_count) as total_views
+      FROM ideas
+    `
+
+    const result = await query(statsQuery)
+    const stats = result.rows[0]
+
+    // Get user count
+    const userCountResult = await query('SELECT COUNT(*) as total_users FROM users WHERE is_active = true')
+    stats.total_users = parseInt(userCountResult.rows[0].total_users)
+
+    res.json(stats)
+
+  } catch (error) {
+    console.error('Error fetching stats:', error)
+    res.status(500).json({ error: 'Failed to fetch statistics' })
+  }
+})
+
 // GET /api/ideas/:id - Get a specific idea
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params
+
+    // Validate that id is a number
+    if (!/^\d+$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid idea ID' })
+    }
 
     // Increment view count
     await query('UPDATE ideas SET views_count = views_count + 1 WHERE id = $1', [id])
 
     // Get idea with user info
     const ideaQuery = `
-      SELECT 
+      SELECT
         i.*,
         u.username,
         u.first_name,
@@ -232,35 +266,6 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting idea:', error)
     res.status(500).json({ error: 'Failed to delete idea' })
-  }
-})
-
-// GET /api/ideas/stats/overview - Get platform statistics
-router.get('/stats/overview', async (req, res) => {
-  try {
-    const statsQuery = `
-      SELECT 
-        COUNT(*) as total_ideas,
-        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_ideas,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_ideas,
-        SUM(votes_count) as total_votes,
-        SUM(comments_count) as total_comments,
-        SUM(views_count) as total_views
-      FROM ideas
-    `
-
-    const result = await query(statsQuery)
-    const stats = result.rows[0]
-
-    // Get user count
-    const userCountResult = await query('SELECT COUNT(*) as total_users FROM users WHERE is_active = true')
-    stats.total_users = parseInt(userCountResult.rows[0].total_users)
-
-    res.json(stats)
-
-  } catch (error) {
-    console.error('Error fetching stats:', error)
-    res.status(500).json({ error: 'Failed to fetch statistics' })
   }
 })
 
