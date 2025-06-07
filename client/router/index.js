@@ -7,6 +7,8 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Profile from '../views/Profile.vue'
 import Settings from '../views/Settings.vue'
+import AllIdeas from '../views/AllIdeas.vue'
+import IdeasInDevelopment from '../views/IdeasInDevelopment.vue'
 
 const routes = [
   {
@@ -52,6 +54,18 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/all-ideas',
+    name: 'AllIdeas',
+    component: AllIdeas,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/ideas-in-development',
+    name: 'IdeasInDevelopment',
+    component: IdeasInDevelopment,
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/idea/:id',
     name: 'IdeaDetail',
     component: () => import('../views/IdeaDetail.vue'),
@@ -82,7 +96,7 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
-    path: '/:pathMatch(.*)*',
+    path: '/:catchAll(.*)',
     name: 'NotFound',
     component: () => import('../views/NotFound.vue'),
     meta: { requiresAuth: false }
@@ -95,8 +109,13 @@ const router = createRouter({
 })
 
 // Guards de navigation
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
+
+  // Initialiser l'authentification si ce n'est pas déjà fait
+  if (!authStore.initialized) {
+    await authStore.initializeAuth()
+  }
 
   // Vérifier si la route nécessite une authentification
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
@@ -110,7 +129,9 @@ router.beforeEach((to, from, next) => {
 
   // Rediriger les utilisateurs connectés loin des pages d'auth
   if (to.meta.redirectIfAuth && authStore.isLoggedIn) {
-    next({ name: 'Dashboard' })
+    // Si l'utilisateur vient d'une redirection, aller à cette page
+    const redirectPath = to.query.redirect || '/dashboard'
+    next(redirectPath)
     return
   }
 

@@ -23,15 +23,16 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('auth_token'),
     isAuthenticated: false,
     loading: false,
-    error: null
+    error: null,
+    initialized: false
   }),
 
   getters: {
-    isLoggedIn: (state) => !!state.token && !!state.user,
+    isLoggedIn: (state) => !!state.token && !!state.user && state.isAuthenticated,
     userRole: (state) => state.user?.role || 'user',
     userName: (state) => {
       if (!state.user) return ''
-      return state.user.first_name && state.user.last_name 
+      return state.user.first_name && state.user.last_name
         ? `${state.user.first_name} ${state.user.last_name}`
         : state.user.username
     }
@@ -94,9 +95,20 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async initializeAuth() {
+      if (this.initialized) return
+
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+      if (token) {
+        this.token = token
+        await this.fetchUser()
+      }
+      this.initialized = true
+    },
+
     async fetchUser() {
       if (!this.token) return
-      
+
       try {
         const response = await api.get('/auth/me')
         this.user = response.data.user
@@ -111,8 +123,10 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.isAuthenticated = false
       this.error = null
-      
+      this.initialized = false
+
       localStorage.removeItem('auth_token')
+      sessionStorage.removeItem('auth_token')
     },
 
     clearError() {
@@ -197,16 +211,40 @@ export const useIdeasStore = defineStore('ideas', {
     async createIdea(ideaData) {
       this.loading = true
       this.error = null
-      
+
       try {
         const response = await api.post('/ideas', ideaData)
-        
+
         // Ajouter la nouvelle idée à la liste
         this.ideas.unshift(response.data.idea)
-        
+
         return { success: true, idea: response.data.idea }
       } catch (error) {
         this.error = error.response?.data?.error || 'Erreur lors de la création de l\'idée'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchIdeasInDevelopment(params = {}) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const queryParams = {
+          status: params.status || 'all',
+          sort: params.sort || 'progress'
+        }
+
+        const response = await api.get('/ideas/in-development', { params: queryParams })
+
+        return {
+          success: true,
+          data: response.data
+        }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors du chargement des idées en développement'
         return { success: false, error: this.error }
       } finally {
         this.loading = false
