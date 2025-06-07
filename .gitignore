@@ -1,0 +1,292 @@
+# ===================================
+# IdéaLab - Fichier .gitignore
+# ===================================
+
+# ===================================
+# SÉCURITÉ - DONNÉES SENSIBLES
+# ===================================
+
+# Base de données et scripts sensibles
+database/
+scripts/
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+
+# Variables d'environnement et configuration
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+config/database.js
+config/secrets.js
+
+# Clés et certificats
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+keys/
+certs/
+ssl/
+
+# Logs contenant potentiellement des données sensibles
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ===================================
+# NODE.JS ET NPM
+# ===================================
+
+# Dépendances
+node_modules/
+jspm_packages/
+
+# Cache npm
+.npm
+.eslintcache
+
+# Fichiers de verrouillage optionnels
+package-lock.json
+yarn.lock
+
+# Répertoire de sortie de 'npm pack'
+*.tgz
+
+# Fichier d'intégrité yarn
+.yarn-integrity
+
+# ===================================
+# ENVIRONNEMENTS DE DÉVELOPPEMENT
+# ===================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# ===================================
+# SYSTÈMES D'EXPLOITATION
+# ===================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===================================
+# FRAMEWORKS ET OUTILS
+# ===================================
+
+# Vue.js
+dist/
+.nuxt/
+.vuepress/dist/
+
+# React
+build/
+.next/
+
+# Coverage directory utilisé par des outils comme istanbul
+coverage/
+*.lcov
+.nyc_output/
+
+# Instrumentation de code ESLint
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# ===================================
+# FICHIERS TEMPORAIRES ET CACHE
+# ===================================
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Cache des éditeurs
+.cache/
+.parcel-cache/
+
+# Sass
+.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
+
+# ===================================
+# DÉPLOIEMENT ET PRODUCTION
+# ===================================
+
+# Fichiers de build
+build/
+dist/
+out/
+
+# Fichiers de déploiement
+deploy/
+.deploy/
+
+# Docker
+.dockerignore
+Dockerfile.prod
+docker-compose.prod.yml
+
+# ===================================
+# TESTS ET DOCUMENTATION
+# ===================================
+
+# Rapports de test
+test-results/
+coverage/
+.nyc_output/
+
+# Documentation générée
+docs/generated/
+api-docs/
+
+# ===================================
+# UPLOADS ET MÉDIAS UTILISATEUR
+# ===================================
+
+# Fichiers uploadés par les utilisateurs
+uploads/
+public/uploads/
+storage/
+media/
+
+# Images de profil et avatars
+avatars/
+profile-pics/
+
+# ===================================
+# SAUVEGARDES ET ARCHIVES
+# ===================================
+
+# Sauvegardes
+*.backup
+*.bak
+*.old
+backup/
+backups/
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ===================================
+# CONFIGURATION LOCALE
+# ===================================
+
+# Configuration locale du développeur
+.local/
+local.config.js
+dev.config.js
+
+# Fichiers de session
+.session
+sessions/
+
+# ===================================
+# MONITORING ET ANALYTICS
+# ===================================
+
+# Logs d'erreur
+error.log
+access.log
+combined.log
+
+# Métriques et analytics
+analytics/
+metrics/
+
+# ===================================
+# NOTES IMPORTANTES
+# ===================================
+
+# ATTENTION : Ce fichier .gitignore est configuré pour la sécurité maximale
+# 
+# Fichiers particulièrement sensibles ignorés :
+# - database/ : Contient les scripts SQL avec mots de passe hachés
+# - scripts/ : Contient les utilitaires de génération de mots de passe
+# - .env : Variables d'environnement avec clés secrètes
+# 
+# Avant de commiter :
+# 1. Vérifiez qu'aucun mot de passe n'est en clair
+# 2. Assurez-vous que les clés API sont dans .env
+# 3. Testez avec 'git status' pour voir les fichiers trackés
+# 
+# Pour partager la structure de base de données :
+# - Créez un fichier schema.sql sans données sensibles
+# - Documentez la structure dans README.md
+# 
+# En production :
+# - Utilisez des variables d'environnement pour tous les secrets
+# - Activez HTTPS et les en-têtes de sécurité
+# - Configurez des sauvegardes automatiques sécurisées
