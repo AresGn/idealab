@@ -54,16 +54,16 @@
           <div class="user-info">
             <span class="user-name">{{ authStore.userName }}</span>
             <div class="user-dropdown">
-              <button class="dropdown-toggle" @click="toggleDropdown">
+              <button class="dropdown-toggle" @click="toggleDropdown('user')">
                 <i class="fas fa-user-circle"></i>
                 <i class="fas fa-chevron-down"></i>
               </button>
-              <div class="dropdown-menu" v-show="showDropdown">
-                <router-link to="/profile" class="dropdown-item">
+              <div class="dropdown-menu" v-show="showDropdown" @click.stop>
+                <router-link to="/profile" class="dropdown-item" @click="closeDropdowns">
                   <i class="fas fa-user"></i>
                   Profil
                 </router-link>
-                <router-link to="/settings" class="dropdown-item">
+                <router-link to="/settings" class="dropdown-item" @click="closeDropdowns">
                   <i class="fas fa-cog"></i>
                   Paramètres
                 </router-link>
@@ -120,25 +120,38 @@ export default {
     toggleDropdown(type = 'user') {
       if (type === 'user') {
         this.showDropdown = !this.showDropdown
+        // Fermer les autres dropdowns
+        this.activeDropdown = null
       } else {
         this.activeDropdown = this.activeDropdown === type ? null : type
+        // Fermer le dropdown utilisateur
+        this.showDropdown = false
       }
     },
     toggleMobileMenu() {
       this.showMobileMenu = !this.showMobileMenu
+      // Fermer tous les dropdowns
+      this.showDropdown = false
+      this.activeDropdown = null
     },
     closeMobileMenu() {
       this.showMobileMenu = false
       this.activeDropdown = null
+      this.showDropdown = false
     },
     closeDropdowns() {
       this.activeDropdown = null
       this.showMobileMenu = false
+      this.showDropdown = false
     },
     async logout() {
-      await this.authStore.logout()
-      this.showDropdown = false
-      this.$router.push('/')
+      try {
+        await this.authStore.logout()
+        this.showDropdown = false
+        this.$router.push('/')
+      } catch (error) {
+        console.error('Erreur lors de la déconnexion:', error)
+      }
     }
   },
   async mounted() {
@@ -147,13 +160,20 @@ export default {
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', (e) => {
+      // Fermer le dropdown utilisateur si on clique en dehors
       if (!e.target.closest('.user-dropdown')) {
         this.showDropdown = false
       }
+      // Fermer les autres dropdowns si on clique en dehors
       if (!e.target.closest('.nav-dropdown') && !e.target.closest('.mobile-menu-toggle')) {
         this.activeDropdown = null
         this.showMobileMenu = false
       }
+    })
+
+    // Écouter les changements de route pour fermer les menus
+    this.$router.afterEach(() => {
+      this.closeDropdowns()
     })
   }
 }

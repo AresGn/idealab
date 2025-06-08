@@ -58,27 +58,14 @@ export default {
     return {
       chartOptions: {
         bar: {
-          responsive: true,
           plugins: {
-            legend: {
-              position: 'top',
-            },
             title: {
               display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
             }
           }
         },
         doughnut: {
-          responsive: true,
           plugins: {
-            legend: {
-              position: 'bottom',
-            },
             title: {
               display: false
             }

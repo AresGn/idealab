@@ -95,6 +95,7 @@ const routes = [
     component: () => import('../views/ForgotPassword.vue'),
     meta: { requiresAuth: false }
   },
+
   {
     path: '/:catchAll(.*)',
     name: 'NotFound',

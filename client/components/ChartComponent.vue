@@ -6,31 +6,13 @@
 
 <script>
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-)
+  ChartJS,
+  defaultChartOptions,
+  barChartOptions,
+  lineChartOptions,
+  doughnutChartOptions,
+  mergeChartOptions
+} from '../utils/chartConfig.js'
 
 export default {
   name: 'ChartComponent',
@@ -81,60 +63,56 @@ export default {
   },
   methods: {
     createChart() {
-      const ctx = document.getElementById(this.chartId)
-      
-      const defaultOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            titleColor: 'white',
-            bodyColor: 'white',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-            borderWidth: 1
-          }
+      try {
+        const ctx = document.getElementById(this.chartId)
+
+        if (!ctx) {
+          console.error('Canvas element not found:', this.chartId)
+          return
         }
+
+        // Sélectionner les options par défaut selon le type de graphique
+        let baseOptions = defaultChartOptions
+        switch (this.type) {
+          case 'bar':
+            baseOptions = barChartOptions
+            break
+          case 'line':
+            baseOptions = lineChartOptions
+            break
+          case 'doughnut':
+          case 'pie':
+            baseOptions = doughnutChartOptions
+            break
+          default:
+            baseOptions = defaultChartOptions
+        }
+
+        const mergedOptions = mergeChartOptions(baseOptions, this.options)
+
+        this.chart = new ChartJS(ctx, {
+          type: this.type,
+          data: this.data,
+          options: mergedOptions
+        })
+
+        console.log(`Chart created successfully: ${this.type}`)
+      } catch (error) {
+        console.error('Error creating chart:', error)
+        console.error('Chart type:', this.type)
+        console.error('Chart data:', this.data)
       }
-
-      const mergedOptions = this.mergeDeep(defaultOptions, this.options)
-
-      this.chart = new ChartJS(ctx, {
-        type: this.type,
-        data: this.data,
-        options: mergedOptions
-      })
     },
     
     updateChart() {
-      if (this.chart) {
-        this.chart.data = this.data
-        this.chart.update()
+      try {
+        if (this.chart) {
+          this.chart.data = this.data
+          this.chart.update()
+        }
+      } catch (error) {
+        console.error('Error updating chart:', error)
       }
-    },
-    
-    mergeDeep(target, source) {
-      const output = Object.assign({}, target)
-      if (this.isObject(target) && this.isObject(source)) {
-        Object.keys(source).forEach(key => {
-          if (this.isObject(source[key])) {
-            if (!(key in target))
-              Object.assign(output, { [key]: source[key] })
-            else
-              output[key] = this.mergeDeep(target[key], source[key])
-          } else {
-            Object.assign(output, { [key]: source[key] })
-          }
-        })
-      }
-      return output
-    },
-    
-    isObject(item) {
-      return item && typeof item === 'object' && !Array.isArray(item)
     }
   }
 }

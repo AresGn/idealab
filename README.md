@@ -1,6 +1,17 @@
-# 💡 My Idea Platform
+# 🌍 IdéaLab - Plateforme Collaborative d'Idées pour l'Afrique
 
 Plateforme collaborative de gestion d'idées adaptée au contexte africain. Cette application permet aux utilisateurs de soumettre, voter et commenter des idées innovantes pour résoudre des problèmes locaux.
+
+## 🚨 ÉTAT ACTUEL - PROBLÈMES RÉSOLUS
+
+### ✅ Corrections Récentes (Décembre 2024)
+- **Persistance de session** : Correction de l'initialisation de l'authentification après actualisation
+- **Menu déroulant utilisateur** : Réparation des gestionnaires d'événements et fermeture automatique
+- **Boutons de navigation** : Vérification et correction du routage vers les formulaires
+- **Gestion d'état** : Amélioration de la synchronisation du store Pinia
+- **Chart.js v4** : Correction critique des contrôleurs non enregistrés (bar, line, doughnut, pie)
+- **Configuration centralisée** : Création d'un système de configuration Chart.js unifié
+- **Gestion d'erreurs** : Amélioration du débogage et de la gestion d'erreurs des graphiques
 
 ## 🌟 Fonctionnalités
 
@@ -196,6 +207,14 @@ Le script d'initialisation crée des utilisateurs et idées d'exemple :
 1. Le frontend utilise Vite avec rechargement à chaud
 2. Le backend utilise Nodemon pour le rechargement automatique
 3. Les deux serveurs communiquent via proxy Vite
+
+### 🧪 Tests des Corrections Chart.js
+Pour tester les corrections Chart.js :
+1. Démarrer l'application : `npm run dev`
+2. Accéder à la page de test : `http://localhost:5173/chart-test`
+3. Vérifier que tous les graphiques s'affichent sans erreur
+4. Tester la connexion et accéder au tableau de bord
+5. Vérifier que les graphiques du dashboard fonctionnent
 
 ## 🚀 Déploiement
 

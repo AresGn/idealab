@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
-    token: localStorage.getItem('auth_token'),
+    token: null,
     isAuthenticated: false,
     loading: false,
     error: null,
@@ -98,12 +98,18 @@ export const useAuthStore = defineStore('auth', {
     async initializeAuth() {
       if (this.initialized) return
 
-      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-      if (token) {
-        this.token = token
-        await this.fetchUser()
+      try {
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+        if (token) {
+          this.token = token
+          await this.fetchUser()
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation de l\'authentification:', error)
+        this.logout()
+      } finally {
+        this.initialized = true
       }
-      this.initialized = true
     },
 
     async fetchUser() {
@@ -114,6 +120,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = response.data.user
         this.isAuthenticated = true
       } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error)
         this.logout()
       }
     },
