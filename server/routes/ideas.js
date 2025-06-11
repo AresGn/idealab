@@ -1,10 +1,11 @@
 import express from 'express'
 import { query } from '../database.js'
+import { authenticateToken, optionalAuth, requireOwnership } from '../middleware/auth.js'
 
 const router = express.Router()
 
 // GET /api/ideas - Get all ideas with pagination and filtering
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const {
       page = 1,
@@ -159,7 +160,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // POST /api/ideas - Create a new idea
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
       title,
@@ -168,7 +169,7 @@ router.post('/', async (req, res) => {
       target_audience,
       willingness_to_pay,
       estimated_budget,
-      user_id = 1 // TODO: Get from authentication middleware
+      user_id = req.user.id
     } = req.body
 
     // Validation
@@ -215,7 +216,7 @@ router.post('/', async (req, res) => {
 })
 
 // PUT /api/ideas/:id - Update an idea
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, requireOwnership('idea'), async (req, res) => {
   try {
     const { id } = req.params
     const {
@@ -227,7 +228,7 @@ router.put('/:id', async (req, res) => {
       estimated_budget
     } = req.body
 
-    // TODO: Add authorization check (user can only update their own ideas)
+    // Authorization is handled by requireOwnership middleware
 
     const updateQuery = `
       UPDATE ideas 
@@ -269,7 +270,7 @@ router.put('/:id', async (req, res) => {
 })
 
 // DELETE /api/ideas/:id - Delete an idea
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, requireOwnership('idea'), async (req, res) => {
   try {
     const { id } = req.params
 

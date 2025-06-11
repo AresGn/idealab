@@ -37,6 +37,7 @@
             <option value="Technologie">💻 Technologie</option>
             <option value="Commerce">🛒 Commerce</option>
             <option value="Environnement">🌍 Environnement</option>
+            <option value="Philanthropie">❤️ Philanthropie</option>
             <option value="Autre">🔧 Autre</option>
           </select>
         </div>
@@ -110,6 +111,8 @@
 </template>
 
 <script>
+import { useIdeasStore, useAuthStore } from '../store'
+
 export default {
   name: 'SubmitIdea',
   data() {
@@ -125,21 +128,41 @@ export default {
       }
     }
   },
+  computed: {
+    authStore() {
+      return useAuthStore()
+    },
+    ideasStore() {
+      return useIdeasStore()
+    }
+  },
   methods: {
     async submitIdea() {
+      if (!this.authStore.isLoggedIn) {
+        this.$router.push('/login')
+        return
+      }
+
       this.isSubmitting = true
-      
+
       try {
-        // TODO: Remplacer par un appel API réel
-        console.log('Soumission de l\'idée:', this.form)
-        
-        // Simulation d'un délai d'API
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        
-        alert('🎉 Votre idée a été soumise avec succès !')
-        this.resetForm()
-        this.$router.push('/')
-        
+        const result = await this.ideasStore.createIdea({
+          title: this.form.title,
+          description: this.form.description,
+          sector: this.form.sector,
+          target_audience: this.form.target,
+          willingness_to_pay: this.form.willingness,
+          estimated_budget: this.form.budget
+        })
+
+        if (result.success) {
+          alert('🎉 Votre idée a été soumise avec succès !')
+          this.resetForm()
+          this.$router.push('/dashboard')
+        } else {
+          alert('❌ ' + (result.error || 'Une erreur est survenue'))
+        }
+
       } catch (error) {
         console.error('Erreur lors de la soumission:', error)
         alert('❌ Une erreur est survenue. Veuillez réessayer.')

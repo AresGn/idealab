@@ -291,6 +291,66 @@ export const useIdeasStore = defineStore('ideas', {
 
     clearError() {
       this.error = null
+    },
+
+    // Nouvelles actions pour le système de vote
+    async voteForIdea(ideaId, voteType) {
+      try {
+        const response = await api.post('/votes/regular', {
+          idea_id: ideaId,
+          vote_type: voteType
+        })
+
+        // Mettre à jour l'idée dans le store si elle existe
+        const ideaIndex = this.ideas.findIndex(idea => idea.id === ideaId)
+        if (ideaIndex !== -1) {
+          // Recharger les données de l'idée pour avoir les compteurs à jour
+          await this.fetchIdea(ideaId)
+        }
+
+        return { success: true, data: response.data }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors du vote'
+        return { success: false, error: this.error }
+      }
+    },
+
+    async votePayment(ideaId, voteType) {
+      try {
+        const response = await api.post('/votes/payment', {
+          idea_id: ideaId,
+          vote_type: voteType
+        })
+
+        return { success: true, data: response.data }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors du vote de paiement'
+        return { success: false, error: this.error }
+      }
+    },
+
+    async getIdeaVotes(ideaId) {
+      try {
+        const response = await api.get(`/votes/idea/${ideaId}`)
+        return { success: true, data: response.data }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors de la récupération des votes'
+        return { success: false, error: this.error }
+      }
+    },
+
+    async getUserVotes(ideaId) {
+      try {
+        const response = await api.get(`/votes/user/${ideaId}`)
+        return { success: true, data: response.data }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors de la récupération des votes utilisateur'
+        return { success: false, error: this.error }
+      }
+    },
+
+    clearError() {
+      this.error = null
     }
   }
 })

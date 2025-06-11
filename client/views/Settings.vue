@@ -88,77 +88,7 @@
           </div>
         </div>
 
-        <!-- Section Notifications -->
-        <div v-if="activeSection === 'notifications'" class="settings-section">
-          <div class="section-header">
-            <h2>
-              <i class="fas fa-bell"></i>
-              Notifications
-            </h2>
-            <p>Gérez vos préférences de notification</p>
-          </div>
 
-          <div class="settings-card">
-            <h3>Notifications par email</h3>
-            <div class="setting-item">
-              <div class="setting-toggle">
-                <label class="toggle-label">
-                  <input type="checkbox" v-model="settings.notifications.newVotes">
-                  <span class="toggle-slider"></span>
-                  Nouveaux votes sur mes idées
-                </label>
-              </div>
-            </div>
-            <div class="setting-item">
-              <div class="setting-toggle">
-                <label class="toggle-label">
-                  <input type="checkbox" v-model="settings.notifications.newComments">
-                  <span class="toggle-slider"></span>
-                  Nouveaux commentaires
-                </label>
-              </div>
-            </div>
-            <div class="setting-item">
-              <div class="setting-toggle">
-                <label class="toggle-label">
-                  <input type="checkbox" v-model="settings.notifications.ideaApproved">
-                  <span class="toggle-slider"></span>
-                  Idée approuvée ou mise en avant
-                </label>
-              </div>
-            </div>
-            <div class="setting-item">
-              <div class="setting-toggle">
-                <label class="toggle-label">
-                  <input type="checkbox" v-model="settings.notifications.newsletter">
-                  <span class="toggle-slider"></span>
-                  Newsletter hebdomadaire
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="settings-card">
-            <h3>Notifications push</h3>
-            <div class="setting-item">
-              <div class="setting-toggle">
-                <label class="toggle-label">
-                  <input type="checkbox" v-model="settings.notifications.pushEnabled">
-                  <span class="toggle-slider"></span>
-                  Activer les notifications push
-                </label>
-              </div>
-            </div>
-            <div class="setting-item">
-              <label>Fréquence des notifications</label>
-              <select v-model="settings.notifications.frequency" class="setting-select">
-                <option value="instant">Instantané</option>
-                <option value="daily">Résumé quotidien</option>
-                <option value="weekly">Résumé hebdomadaire</option>
-              </select>
-            </div>
-          </div>
-        </div>
 
         <!-- Section Confidentialité -->
         <div v-if="activeSection === 'privacy'" class="settings-section">
@@ -319,7 +249,6 @@ export default {
       deleteConfirmation: '',
       sections: [
         { id: 'general', label: 'Général', icon: 'fas fa-user-cog' },
-        { id: 'notifications', label: 'Notifications', icon: 'fas fa-bell' },
         { id: 'privacy', label: 'Confidentialité', icon: 'fas fa-shield-alt' },
         { id: 'account', label: 'Compte', icon: 'fas fa-user-circle' }
       ],
@@ -327,14 +256,6 @@ export default {
         language: 'fr',
         timezone: 'Africa/Abidjan',
         theme: 'light',
-        notifications: {
-          newVotes: true,
-          newComments: true,
-          ideaApproved: true,
-          newsletter: false,
-          pushEnabled: true,
-          frequency: 'instant'
-        },
         privacy: {
           publicProfile: true,
           showEmail: false,
@@ -364,14 +285,6 @@ export default {
         language: 'fr',
         timezone: 'Africa/Abidjan',
         theme: 'light',
-        notifications: {
-          newVotes: true,
-          newComments: true,
-          ideaApproved: true,
-          newsletter: false,
-          pushEnabled: true,
-          frequency: 'instant'
-        },
         privacy: {
           publicProfile: true,
           showEmail: false,

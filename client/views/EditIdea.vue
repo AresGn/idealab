@@ -74,6 +74,7 @@
             <option value="Commerce">Commerce</option>
             <option value="Technologie">Technologie</option>
             <option value="Environnement">Environnement</option>
+            <option value="Philanthropie">Philanthropie</option>
             <option value="Autre">Autre</option>
           </select>
           <span v-if="errors.sector" class="error-message">{{ errors.sector }}</span>
