@@ -44,14 +44,17 @@
           </label>
           <select v-model="filters.sector" @change="applyFilters" class="filter-select">
             <option value="">Toutes les catégories</option>
-            <option value="agriculture">Agriculture</option>
-            <option value="technologie">Technologie</option>
-            <option value="sante">Santé</option>
-            <option value="education">Éducation</option>
-            <option value="environnement">Environnement</option>
-            <option value="transport">Transport</option>
-            <option value="finance">Finance</option>
-            <option value="autre">Autre</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Technologie">Technologie</option>
+            <option value="Santé">Santé</option>
+            <option value="Éducation">Éducation</option>
+            <option value="Environnement">Environnement</option>
+            <option value="Transport">Transport</option>
+            <option value="Finance">Finance</option>
+            <option value="Énergie">Énergie</option>
+            <option value="Commerce">Commerce</option>
+            <option value="Philanthropie">Philanthropie</option>
+            <option value="Autre">Autre</option>
           </select>
         </div>
 

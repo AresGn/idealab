@@ -63,12 +63,13 @@
           </div>
         </div>
 
+        <!-- Système de vote amélioré -->
+        <VotingButtons
+          :idea-id="idea.id"
+          @vote-updated="handleVoteUpdate"
+        />
+
         <div class="idea-actions">
-          <button class="btn btn-primary" @click="voteForIdea" :disabled="voting">
-            <i v-if="voting" class="fas fa-spinner fa-spin"></i>
-            <i v-else class="fas fa-thumbs-up"></i>
-            {{ voting ? 'Vote...' : 'Voter pour cette idée' }}
-          </button>
           <button class="btn btn-secondary" @click="shareIdea">
             <i class="fas fa-share-alt"></i>
             Partager
@@ -169,8 +170,13 @@
 </template>
 
 <script>
+import VotingButtons from '../components/VotingButtons.vue'
+
 export default {
   name: 'IdeaDetail',
+  components: {
+    VotingButtons
+  },
   data() {
     return {
       idea: null,
@@ -241,17 +247,10 @@ export default {
       return statusMap[status] || status
     },
 
-    async voteForIdea() {
-      this.voting = true
-      try {
-        // Simulation d'API call
-        await new Promise(resolve => setTimeout(resolve, 500))
-        this.idea.votes_count++
-      } catch (error) {
-        console.error('Erreur lors du vote:', error)
-      } finally {
-        this.voting = false
-      }
+    handleVoteUpdate(voteData) {
+      // Gérer les mises à jour de vote si nécessaire
+      console.log('Vote mis à jour:', voteData)
+      // Optionnel: mettre à jour les statistiques de l'idée
     },
 
     shareIdea() {

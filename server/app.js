@@ -10,6 +10,7 @@ import dotenv from 'dotenv'
 import ideaRoutes from './routes/ideas.js'
 import userRoutes from './routes/users.js'
 import authRoutes from './routes/auth.js'
+import voteRoutes from './routes/votes.js'
 
 // Load environment variables
 dotenv.config()
@@ -43,6 +44,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use('/api/ideas', ideaRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/votes', voteRoutes)
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
