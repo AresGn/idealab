@@ -119,6 +119,140 @@ router.get('/stats/overview', async (req, res) => {
   }
 })
 
+// GET /api/ideas/stats/user/:userId - Get user-specific statistics
+router.get('/stats/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    // Get user's ideas statistics
+    const userStatsQuery = `
+      SELECT
+        COUNT(*) as ideas_submitted,
+        SUM(votes_count) as total_votes,
+        SUM(comments_count) as total_comments,
+        SUM(views_count) as total_views,
+        AVG(votes_count) as avg_votes_per_idea
+      FROM ideas
+      WHERE user_id = $1 AND status = 'approved'
+    `
+
+    const userStatsResult = await query(userStatsQuery, [userId])
+    const userStats = userStatsResult.rows[0]
+
+    // Get user's rank based on total votes
+    const rankQuery = `
+      SELECT COUNT(*) + 1 as rank
+      FROM (
+        SELECT user_id, SUM(votes_count) as total_votes
+        FROM ideas
+        WHERE status = 'approved'
+        GROUP BY user_id
+        HAVING SUM(votes_count) > $1
+      ) ranked_users
+    `
+
+    const rankResult = await query(rankQuery, [userStats.total_votes || 0])
+    userStats.rank = parseInt(rankResult.rows[0].rank)
+
+    // Get monthly trends for the user (last 6 months)
+    const trendsQuery = `
+      SELECT
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(*) as ideas_count,
+        SUM(votes_count) as votes_received,
+        SUM(comments_count) as comments_received
+      FROM ideas
+      WHERE user_id = $1 AND status = 'approved'
+        AND created_at >= CURRENT_DATE - INTERVAL '6 months'
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY month DESC
+    `
+
+    const trendsResult = await query(trendsQuery, [userId])
+    userStats.monthly_trends = trendsResult.rows
+
+    // Calculate growth metrics
+    const currentMonth = userStats.monthly_trends[0]
+    const previousMonth = userStats.monthly_trends[1]
+
+    if (currentMonth && previousMonth) {
+      userStats.ideas_growth = parseInt(currentMonth.ideas_count) - parseInt(previousMonth.ideas_count)
+      userStats.votes_growth = parseInt(currentMonth.votes_received) - parseInt(previousMonth.votes_received)
+      userStats.comments_growth = parseInt(currentMonth.comments_received) - parseInt(previousMonth.comments_received)
+    } else {
+      userStats.ideas_growth = currentMonth ? parseInt(currentMonth.ideas_count) : 0
+      userStats.votes_growth = currentMonth ? parseInt(currentMonth.votes_received) : 0
+      userStats.comments_growth = currentMonth ? parseInt(currentMonth.comments_received) : 0
+    }
+
+    res.json(userStats)
+  } catch (error) {
+    console.error('Error fetching user stats:', error)
+    res.status(500).json({ error: 'Failed to fetch user statistics' })
+  }
+})
+
+// GET /api/ideas/stats/trends - Get platform trends and analytics
+router.get('/stats/trends', async (req, res) => {
+  try {
+    // Get monthly submission trends (last 12 months)
+    const submissionTrendsQuery = `
+      SELECT
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(*) as ideas_count,
+        SUM(votes_count) as total_votes,
+        SUM(comments_count) as total_comments,
+        COUNT(CASE WHEN design_thinking_mode = true THEN 1 END) as design_thinking_count
+      FROM ideas
+      WHERE status = 'approved'
+        AND created_at >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY month ASC
+    `
+
+    const submissionTrends = await query(submissionTrendsQuery)
+
+    // Get sector distribution
+    const sectorDistributionQuery = `
+      SELECT
+        sector,
+        COUNT(*) as count,
+        SUM(votes_count) as total_votes,
+        AVG(votes_count) as avg_votes
+      FROM ideas
+      WHERE status = 'approved'
+      GROUP BY sector
+      ORDER BY count DESC
+    `
+
+    const sectorDistribution = await query(sectorDistributionQuery)
+
+    // Get top performing ideas (last 30 days)
+    const topIdeasQuery = `
+      SELECT
+        i.id, i.title, i.sector, i.votes_count, i.comments_count, i.views_count,
+        u.username, u.first_name, u.last_name
+      FROM ideas i
+      LEFT JOIN users u ON i.user_id = u.id
+      WHERE i.status = 'approved'
+        AND i.created_at >= CURRENT_DATE - INTERVAL '30 days'
+      ORDER BY i.votes_count DESC
+      LIMIT 10
+    `
+
+    const topIdeas = await query(topIdeasQuery)
+
+    res.json({
+      submission_trends: submissionTrends.rows,
+      sector_distribution: sectorDistribution.rows,
+      top_ideas_last_30_days: topIdeas.rows
+    })
+  } catch (error) {
+    console.error('Error fetching trends:', error)
+    res.status(500).json({ error: 'Failed to fetch trends data' })
+  }
+})
+
 // GET /api/ideas/:id - Get a specific idea
 router.get('/:id', async (req, res) => {
   try {
@@ -169,13 +303,28 @@ router.post('/', authenticateToken, async (req, res) => {
       target_audience,
       willingness_to_pay,
       estimated_budget,
-      user_id = req.user.id
+      user_id = req.user.id,
+      // Design Thinking fields
+      design_thinking_mode = false,
+      completion_percentage = 0,
+      // EMPATHIZE
+      empathy_target_users,
+      empathy_needs_frustrations,
+      empathy_usage_context,
+      // DEFINE
+      define_problem_statement,
+      define_importance_reason,
+      define_objective,
+      // IDEATE
+      ideate_proposed_solution,
+      ideate_alternatives_considered,
+      ideate_inspiration_references
     } = req.body
 
     // Validation
-    if (!title || !description || !sector) {
+    if (!title || !sector) {
       return res.status(400).json({
-        error: 'Title, description, and sector are required'
+        error: 'Title and sector are required'
       })
     }
 
@@ -185,27 +334,68 @@ router.post('/', authenticateToken, async (req, res) => {
       })
     }
 
+    // Validation spécifique pour Design Thinking
+    if (design_thinking_mode) {
+      if (!empathy_target_users || !empathy_needs_frustrations || !empathy_usage_context) {
+        return res.status(400).json({
+          error: 'EMPATHIZE fields are required for Design Thinking mode'
+        })
+      }
+      if (!define_problem_statement || !define_importance_reason || !define_objective) {
+        return res.status(400).json({
+          error: 'DEFINE fields are required for Design Thinking mode'
+        })
+      }
+      if (!ideate_proposed_solution) {
+        return res.status(400).json({
+          error: 'IDEATE solution is required for Design Thinking mode'
+        })
+      }
+    } else {
+      // Validation classique
+      if (!description) {
+        return res.status(400).json({
+          error: 'Description is required for standard mode'
+        })
+      }
+    }
+
     const insertQuery = `
       INSERT INTO ideas (
-        title, description, sector, target_audience, 
-        willingness_to_pay, estimated_budget, user_id
+        title, description, sector, target_audience,
+        willingness_to_pay, estimated_budget, user_id, status,
+        design_thinking_mode, completion_percentage,
+        empathy_target_users, empathy_needs_frustrations, empathy_usage_context,
+        define_problem_statement, define_importance_reason, define_objective,
+        ideate_proposed_solution, ideate_alternatives_considered, ideate_inspiration_references
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'approved', $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       RETURNING *
     `
 
     const result = await query(insertQuery, [
       title,
-      description,
+      description || '', // Description peut être vide en mode Design Thinking
       sector,
       target_audience,
       willingness_to_pay,
       estimated_budget,
-      user_id
+      user_id,
+      design_thinking_mode,
+      completion_percentage,
+      empathy_target_users,
+      empathy_needs_frustrations,
+      empathy_usage_context,
+      define_problem_statement,
+      define_importance_reason,
+      define_objective,
+      ideate_proposed_solution,
+      ideate_alternatives_considered,
+      ideate_inspiration_references
     ])
 
     res.status(201).json({
-      message: 'Idea created successfully',
+      message: `Idea created successfully${design_thinking_mode ? ' with Design Thinking methodology' : ''}`,
       idea: result.rows[0]
     })
 

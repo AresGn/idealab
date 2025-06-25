@@ -171,11 +171,16 @@
 
 <script>
 import VotingButtons from '../components/VotingButtons.vue'
+import { useIdeasStore } from '@/store'
 
 export default {
   name: 'IdeaDetail',
   components: {
     VotingButtons
+  },
+  setup() {
+    const ideasStore = useIdeasStore()
+    return { ideasStore }
   },
   data() {
     return {
@@ -191,28 +196,16 @@ export default {
     async loadIdea() {
       try {
         this.loading = true
+        this.error = null
         const ideaId = this.$route.params.id
-        
-        // Simulation d'API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Données simulées
-        this.idea = {
-          id: ideaId,
-          title: "Application de covoiturage rural",
-          description: "Une application mobile innovante qui permet aux habitants des zones rurales de partager des trajets vers les villes. L'application utilise une interface simple et intuitive, adaptée aux utilisateurs ayant des compétences numériques limitées. Elle propose un système de géolocalisation optimisé pour les zones avec une connectivité internet faible, et intègre des options de paiement flexibles incluant le mobile money populaire en Afrique.",
-          sector: "Transport",
-          target_audience: "Habitants des zones rurales, travailleurs urbains originaires des villages",
-          estimated_budget: "50000",
-          willingness_to_pay: "Abonnement mensuel de 5000 FCFA",
-          status: "approved",
-          votes_count: 23,
-          comments_count: 5,
-          views_count: 156,
-          created_at: "2024-01-20T10:00:00Z",
-          first_name: "Marie",
-          last_name: "Kouamé",
-          username: "marie.kouame"
+
+        // Charger l'idée depuis l'API
+        const result = await this.ideasStore.fetchIdea(ideaId)
+
+        if (result.success) {
+          this.idea = this.ideasStore.currentIdea
+        } else {
+          this.error = result.error || "Impossible de charger l'idée"
         }
       } catch (error) {
         this.error = "Impossible de charger l'idée"
