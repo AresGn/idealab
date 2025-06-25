@@ -27,11 +27,6 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "functions": {
-    "server/app.js": {
-      "maxDuration": 30
-    }
-  },
   "regions": ["fra1"],
   "github": {
     "silent": true
