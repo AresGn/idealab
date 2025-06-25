@@ -156,9 +156,15 @@ export default {
         })
 
         if (result.success) {
-          alert('🎉 Votre idée a été soumise avec succès !')
+          alert('🎉 Votre idée a été publiée avec succès et est maintenant visible par tous !')
           this.resetForm()
-          this.$router.push('/dashboard')
+          this.$router.push({
+            path: '/dashboard',
+            query: {
+              message: 'Idée publiée automatiquement avec succès !',
+              type: 'success'
+            }
+          })
         } else {
           alert('❌ ' + (result.error || 'Une erreur est survenue'))
         }

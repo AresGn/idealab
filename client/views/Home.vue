@@ -11,13 +11,28 @@
           et contribuez au développement de solutions adaptées au contexte africain.
         </p>
         <div class="hero-actions">
-          <router-link to="/submit" class="btn btn-primary">
-            <i class="fas fa-lightbulb"></i>
-            Soumettre une idée
-          </router-link>
-          <button @click="scrollToIdeas" class="btn btn-secondary">
+          <div class="submit-options">
+            <router-link to="/submit-design-thinking" class="btn btn-primary btn-featured">
+              <i class="fas fa-brain"></i>
+              <span>
+                <strong>Design Thinking</strong>
+                <small>Méthode structurée</small>
+              </span>
+            </router-link>
+            <router-link to="/submit" class="btn btn-primary btn-express">
+              <i class="fas fa-lightbulb"></i>
+              <span>
+                <strong>Mode Express</strong>
+                <small>Soumission rapide</small>
+              </span>
+            </router-link>
+          </div>
+          <button @click="scrollToIdeas" class="btn btn-secondary btn-uniform">
             <i class="fas fa-eye"></i>
-            Voir les idées
+            <span>
+              <strong>Voir les idées</strong>
+              <small>Explorer la communauté</small>
+            </span>
           </button>
         </div>
       </div>
@@ -217,6 +232,137 @@ export default {
 .btn-secondary:hover {
   background-color: white;
   color: #667eea;
+}
+
+/* Submit Options Styles */
+.submit-options {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Styles communs pour tous les boutons uniformes */
+.btn-featured,
+.btn-express,
+.btn-uniform {
+  padding: 1rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  min-width: 200px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.btn-featured span,
+.btn-express span,
+.btn-uniform span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-featured strong,
+.btn-express strong,
+.btn-uniform strong {
+  font-size: 1.1rem;
+}
+
+.btn-featured small,
+.btn-express small,
+.btn-uniform small {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  font-weight: normal;
+}
+
+/* Design Thinking - Gradient violet */
+.btn-featured {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-featured::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-featured:hover::before {
+  left: 100%;
+}
+
+.btn-featured:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Mode Express - Gradient orange */
+.btn-express {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+}
+
+.btn-express::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-express:hover::before {
+  left: 100%;
+}
+
+.btn-express:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+/* Voir les idées - Style outline uniforme */
+.btn-uniform {
+  background: transparent;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.btn-uniform:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .submit-options {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn-featured,
+  .btn-express,
+  .btn-uniform {
+    width: 100%;
+    max-width: 280px;
+    min-height: 70px;
+  }
 }
 
 .stats {
