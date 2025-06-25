@@ -12,6 +12,9 @@ import userRoutes from './routes/users.js'
 import authRoutes from './routes/auth.js'
 import voteRoutes from './routes/votes.js'
 
+// Import database functions
+import { testConnection } from './database.js'
+
 // Load environment variables
 dotenv.config()
 
@@ -100,15 +103,20 @@ app.use('/api', (req, res) => {
 })
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`)
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`)
   console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`)
-  
+
   if (process.env.NODE_ENV !== 'production') {
     console.log(`📋 API Documentation: http://localhost:${PORT}/api`)
     console.log(`❤️  Health Check: http://localhost:${PORT}/api/health`)
   }
+
+  // Test database connection
+  console.log('')
+  await testConnection()
+  console.log('')
 })
 
 export default app

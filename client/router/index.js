@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store'
 import Home from '../views/Home.vue'
 import SubmitIdea from '../views/SubmitIdea.vue'
+import SubmitIdeaDesignThinking from '../views/SubmitIdeaDesignThinking.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
@@ -33,6 +34,12 @@ const routes = [
     path: '/submit',
     name: 'SubmitIdea',
     component: SubmitIdea,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/submit-design-thinking',
+    name: 'SubmitIdeaDesignThinking',
+    component: SubmitIdeaDesignThinking,
     meta: { requiresAuth: true }
   },
   {

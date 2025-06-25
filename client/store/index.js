@@ -9,7 +9,8 @@ const api = axios.create({
 
 // Intercepteur pour ajouter le token d'authentification
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
+  // Vérifier d'abord localStorage puis sessionStorage
+  const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -222,8 +223,11 @@ export const useIdeasStore = defineStore('ideas', {
       try {
         const response = await api.post('/ideas', ideaData)
 
-        // Ajouter la nouvelle idée à la liste
+        // Ajouter la nouvelle idée à la liste (publication automatique)
         this.ideas.unshift(response.data.idea)
+
+        // Note: La mise à jour des statistiques sera gérée par le composant Dashboard
+        // via le rafraîchissement automatique
 
         return { success: true, idea: response.data.idea }
       } catch (error) {
@@ -291,6 +295,16 @@ export const useIdeasStore = defineStore('ideas', {
 
     clearError() {
       this.error = null
+    },
+
+    // Méthode pour rafraîchir les données en temps réel
+    async refreshData() {
+      try {
+        await this.fetchIdeas()
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: 'Erreur lors du rafraîchissement' }
+      }
     },
 
     // Nouvelles actions pour le système de vote
@@ -364,25 +378,151 @@ export const useStatsStore = defineStore('stats', {
       total_votes: 0,
       total_comments: 0
     },
+    userStats: {
+      ideas_submitted: 0,
+      total_votes: 0,
+      total_comments: 0,
+      rank: 0,
+      ideas_growth: 0,
+      votes_growth: 0,
+      comments_growth: 0,
+      monthly_trends: []
+    },
+    trends: {
+      submission_trends: [],
+      sector_distribution: [],
+      top_ideas_last_30_days: []
+    },
     loading: false,
     error: null
   }),
+
+  getters: {
+    // Formater les données pour les graphiques
+    chartData: (state) => ({
+      performance: {
+        labels: state.userStats.monthly_trends.map(trend => {
+          const date = new Date(trend.month)
+          return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        }).reverse(),
+        datasets: [{
+          label: 'Votes reçus',
+          data: state.userStats.monthly_trends.map(trend => parseInt(trend.votes_received) || 0).reverse(),
+          backgroundColor: 'rgba(102, 126, 234, 0.8)',
+          borderColor: 'rgba(102, 126, 234, 1)',
+          borderWidth: 2
+        }, {
+          label: 'Commentaires',
+          data: state.userStats.monthly_trends.map(trend => parseInt(trend.comments_received) || 0).reverse(),
+          backgroundColor: 'rgba(118, 75, 162, 0.8)',
+          borderColor: 'rgba(118, 75, 162, 1)',
+          borderWidth: 2
+        }]
+      },
+      sectors: {
+        labels: state.trends.sector_distribution.map(sector => sector.sector),
+        datasets: [{
+          data: state.trends.sector_distribution.map(sector => parseInt(sector.count)),
+          backgroundColor: [
+            '#667eea', '#764ba2', '#f093fb', '#f5576c',
+            '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+            '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3'
+          ]
+        }]
+      }
+    }),
+
+    // Formater les textes de croissance
+    growthTexts: (state) => ({
+      ideas: state.userStats.ideas_growth > 0
+        ? `+${state.userStats.ideas_growth} ce mois`
+        : state.userStats.ideas_growth < 0
+        ? `${state.userStats.ideas_growth} ce mois`
+        : 'Aucun changement',
+      votes: state.userStats.votes_growth > 0
+        ? `+${state.userStats.votes_growth} cette semaine`
+        : state.userStats.votes_growth < 0
+        ? `${state.userStats.votes_growth} cette semaine`
+        : 'Aucun changement',
+      comments: state.userStats.comments_growth > 0
+        ? `+${state.userStats.comments_growth} cette semaine`
+        : state.userStats.comments_growth < 0
+        ? `${state.userStats.comments_growth} cette semaine`
+        : 'Aucun changement',
+      rank: state.userStats.rank > 0
+        ? `#${state.userStats.rank} au classement`
+        : 'Non classé'
+    })
+  },
 
   actions: {
     async fetchOverview() {
       this.loading = true
       this.error = null
-      
+
       try {
         const response = await api.get('/ideas/stats/overview')
         this.overview = response.data
-        
+
         return { success: true }
       } catch (error) {
         this.error = error.response?.data?.error || 'Erreur lors du chargement des statistiques'
         return { success: false, error: this.error }
       } finally {
         this.loading = false
+      }
+    },
+
+    async fetchUserStats(userId) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await api.get(`/ideas/stats/user/${userId}`)
+        this.userStats = response.data
+
+        return { success: true }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors du chargement des statistiques utilisateur'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchTrends() {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await api.get('/ideas/stats/trends')
+        this.trends = response.data
+
+        return { success: true }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Erreur lors du chargement des tendances'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Méthode pour rafraîchir toutes les données
+    async refreshAllStats(userId) {
+      const promises = [
+        this.fetchOverview(),
+        this.fetchTrends()
+      ]
+
+      if (userId) {
+        promises.push(this.fetchUserStats(userId))
+      }
+
+      try {
+        await Promise.all(promises)
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: 'Erreur lors du rafraîchissement des statistiques' }
       }
     }
   }
