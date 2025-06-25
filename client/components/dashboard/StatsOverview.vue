@@ -5,9 +5,11 @@
         <i class="fas fa-lightbulb"></i>
       </div>
       <div class="stat-content">
-        <h3>{{ stats.ideasSubmitted }}</h3>
+        <h3>{{ stats.ideas_submitted || stats.ideasSubmitted || 0 }}</h3>
         <p>Idées soumises</p>
-        <span class="stat-change positive">+2 ce mois</span>
+        <span :class="['stat-change', stats.ideas_growth >= 0 ? 'positive' : 'negative']">
+          {{ growthTexts.ideas }}
+        </span>
       </div>
     </div>
     
@@ -16,9 +18,11 @@
         <i class="fas fa-thumbs-up"></i>
       </div>
       <div class="stat-content">
-        <h3>{{ stats.totalVotes }}</h3>
+        <h3>{{ stats.total_votes || stats.totalVotes || 0 }}</h3>
         <p>Votes reçus</p>
-        <span class="stat-change positive">+12 cette semaine</span>
+        <span :class="['stat-change', stats.votes_growth >= 0 ? 'positive' : 'negative']">
+          {{ growthTexts.votes }}
+        </span>
       </div>
     </div>
     
@@ -27,9 +31,11 @@
         <i class="fas fa-comments"></i>
       </div>
       <div class="stat-content">
-        <h3>{{ stats.totalComments }}</h3>
+        <h3>{{ stats.total_comments || stats.totalComments || 0 }}</h3>
         <p>Commentaires reçus</p>
-        <span class="stat-change positive">+5 cette semaine</span>
+        <span :class="['stat-change', stats.comments_growth >= 0 ? 'positive' : 'negative']">
+          {{ growthTexts.comments }}
+        </span>
       </div>
     </div>
     
@@ -38,15 +44,19 @@
         <i class="fas fa-trophy"></i>
       </div>
       <div class="stat-content">
-        <h3>#{{ stats.rank }}</h3>
+        <h3>{{ stats.rank > 0 ? `#${stats.rank}` : 'N/A' }}</h3>
         <p>Classement</p>
-        <span class="stat-change positive">↑3 positions</span>
+        <span class="stat-change neutral">
+          {{ growthTexts.rank }}
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { useStatsStore } from '@/store'
+
 export default {
   name: 'StatsOverview',
   props: {
@@ -59,6 +69,15 @@ export default {
         totalComments: 0,
         rank: 0
       })
+    }
+  },
+  setup() {
+    const statsStore = useStatsStore()
+    return { statsStore }
+  },
+  computed: {
+    growthTexts() {
+      return this.statsStore.growthTexts
     }
   }
 }
@@ -139,6 +158,16 @@ export default {
 .stat-change.positive {
   background: #f0fff4;
   color: #38a169;
+}
+
+.stat-change.negative {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.stat-change.neutral {
+  background: #edf2f7;
+  color: #4a5568;
 }
 
 @media (max-width: 768px) {
