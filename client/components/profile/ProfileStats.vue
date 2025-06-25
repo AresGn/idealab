@@ -60,35 +60,31 @@
         <i class="fas fa-chart-line"></i>
         Performance mensuelle
       </h3>
-      <ChartComponent
-        type="line"
-        :data="chartData"
-        :height="300"
-      />
+      <div class="chart-placeholder">
+        <p>📊 Graphique de performance (Chart.js sera intégré prochainement)</p>
+      </div>
     </div>
-    
+
     <!-- Répartition par secteur -->
     <div class="sector-distribution" v-if="sectorData.labels.length > 0">
       <h3>
         <i class="fas fa-chart-pie"></i>
         Répartition par secteur
       </h3>
-      <ChartComponent
-        type="doughnut"
-        :data="sectorData"
-        :height="300"
-      />
+      <div class="chart-placeholder">
+        <p>📊 Graphique de répartition (Chart.js sera intégré prochainement)</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import ChartComponent from '../ChartComponent.vue'
+// import ChartComponent from '../ChartComponent.vue'
 
 export default {
   name: 'ProfileStats',
   components: {
-    ChartComponent
+    // ChartComponent
   },
   props: {
     stats: {
@@ -278,6 +274,20 @@ export default {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+}
+
+.chart-placeholder {
+  padding: 3rem 2rem;
+  text-align: center;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 2px dashed #e2e8f0;
+}
+
+.chart-placeholder p {
+  color: #718096;
+  font-size: 1.125rem;
+  margin: 0;
 }
 
 @media (max-width: 768px) {
