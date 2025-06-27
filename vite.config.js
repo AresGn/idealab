@@ -1,17 +1,28 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
-  root: 'client',
+  root: '.',
   build: {
-    outDir: '../public',
-    emptyOutDir: true
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'esbuild',
+    rollupOptions: {
+      input: resolve(__dirname, 'index.html'),
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          utils: ['axios']
+        }
+      }
+    }
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'client')
+      '@': resolve(__dirname, 'src')
     }
   },
   server: {
@@ -19,8 +30,12 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false
       }
     }
+  },
+  preview: {
+    port: 4173
   }
 })
