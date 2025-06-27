@@ -1,32 +1,32 @@
 {
-  "name": "my-idea-platform",
+  "name": "idealab",
   "version": "1.0.0",
   "description": "Plateforme collaborative de gestion d'idées adaptée au contexte africain. Cette application permet aux utilisateurs de soumettre, voter et commenter des idées innovantes pour résoudre des problèmes locaux.",
-  "main": "server/app.js",
+  "main": "api/app.js",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "client:dev": "vite",
     "client:build": "vite build",
     "client:preview": "vite preview",
-    "server:dev": "nodemon server/app.js",
-    "server:start": "node server/app.js",
-    "generate-passwords": "./scripts/generate-passwords.js",
-    "build": "npm run client:build",
-    "start": "npm run server:start",
-    "db:init": "node -e \"import('./server/database.js').then(db => db.initializeDatabase().then(() => process.exit(0)).catch(e => {console.error(e); process.exit(1)}))\""
+    "server:dev": "nodemon api/app.js",
+    "server:start": "node api/app.js",
+    "build": "vite build",
+    "start": "node api/app.js",
+    "preview": "vite preview",
+    "db:init": "node -e \"import('./api/database.js').then(db => db.initializeDatabase().then(() => process.exit(0)).catch(e => {console.error(e); process.exit(1)}))\""
   },
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "keywords": [],
+  "keywords": ["vue", "express", "postgresql", "ideas", "collaboration"],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
-    "chart.js": "^4.4.9",
+    "chart.js": "^4.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -35,14 +35,19 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "pg": "^8.16.0",
-    "pinia": "^3.0.3",
-    "vue": "^3.5.16",
-    "vue-router": "^4.5.1"
+    "pinia": "^2.1.0",
+    "vue": "^3.4.0",
+    "vue-chartjs": "^5.3.2",
+    "vue-router": "^4.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "autoprefixer": "^10.4.0",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.10",
-    "vite": "^6.3.5"
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "terser": "^5.43.1",
+    "vite": "^5.0.0"
   }
 }
