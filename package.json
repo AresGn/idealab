@@ -12,6 +12,7 @@
     "server:dev": "nodemon api/app.js",
     "server:start": "node api/app.js",
     "build": "vite build",
+    "vercel-build": "vite build",
     "start": "node api/app.js",
     "preview": "vite preview",
     "db:init": "node -e \"import('./api/database.js').then(db => db.initializeDatabase().then(() => process.exit(0)).catch(e => {console.error(e); process.exit(1)}))\""
