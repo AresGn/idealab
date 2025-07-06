@@ -102,21 +102,23 @@ app.use('/api', (req, res) => {
   })
 })
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`🚀 Server running on port ${PORT}`)
-  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`)
-  console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`)
+// Start server only if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    console.log(`🚀 Server running on port ${PORT}`)
+    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`)
+    console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`)
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`📋 API Documentation: http://localhost:${PORT}/api`)
-    console.log(`❤️  Health Check: http://localhost:${PORT}/api/health`)
-  }
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`📋 API Documentation: http://localhost:${PORT}/api`)
+      console.log(`❤️  Health Check: http://localhost:${PORT}/api/health`)
+    }
 
-  // Test database connection
-  console.log('')
-  await testConnection()
-  console.log('')
-})
+    // Test database connection
+    console.log('')
+    await testConnection()
+    console.log('')
+  })
+}
 
 export default app

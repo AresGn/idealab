@@ -1,0 +1,37 @@
+# Dependencies
+node_modules
+
+# Development files
+src
+*.md
+*.bat
+*.sh
+*.ps1
+
+# Test files
+test-*.js
+test-*.md
+
+# Documentation
+CHART_FIX_DOCUMENTATION.md
+DEPLOYMENT_READINESS.md
+IMPLEMENTATION_SUMMARY.md
+Ideation.md
+MONOREPO_MIGRATION.md
+README-NEW.md
+README.md
+TEST_VALIDATION.md
+production-config.md
+refactorisation-report.md
+test-auto-publication.md
+
+# Config files not needed in production
+postcss.config.js
+tailwind.config.js
+vite.config.js
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
