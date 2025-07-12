@@ -68,27 +68,46 @@
         <h2>Idées Récentes</h2>
       </div>
       <div class="ideas-grid" v-if="recentIdeas.length > 0">
-        <div 
-          v-for="idea in recentIdeas" 
-          :key="idea.id" 
+        <div
+          v-for="idea in recentIdeas"
+          :key="idea.id"
           class="idea-card"
+          @click="viewIdeaDetails(idea.id)"
         >
           <h3>{{ idea.title }}</h3>
           <p class="idea-sector">{{ idea.sector }}</p>
-          <p class="idea-description">{{ idea.description }}</p>
+          <p class="idea-description">{{ truncateText(idea.description, 120) }}</p>
+          <div class="idea-author" v-if="idea.first_name || idea.last_name">
+            <i class="fas fa-user"></i>
+            <span>{{ idea.first_name }} {{ idea.last_name }}</span>
+          </div>
           <div class="idea-meta">
             <span class="votes">
               <i class="fas fa-thumbs-up"></i>
-              {{ idea.votes }}
+              {{ idea.votes_count || 0 }}
             </span>
             <span class="comments">
               <i class="fas fa-comments"></i>
-              {{ idea.comments }}
+              {{ idea.comments_count || 0 }}
+            </span>
+            <span class="views">
+              <i class="fas fa-eye"></i>
+              {{ idea.views_count || 0 }}
             </span>
             <span class="date">
               <i class="fas fa-calendar-alt"></i>
-              {{ formatDate(idea.createdAt) }}
+              {{ formatDate(idea.created_at) }}
             </span>
+          </div>
+          <div class="idea-actions">
+            <button @click.stop="voteIdea(idea.id)" class="vote-btn" :class="{ voted: idea.user_voted }">
+              <i class="fas fa-thumbs-up"></i>
+              {{ idea.user_voted ? 'Voté' : 'Voter' }}
+            </button>
+            <button @click.stop="viewIdeaDetails(idea.id)" class="view-btn">
+              <i class="fas fa-arrow-right"></i>
+              Voir plus
+            </button>
           </div>
         </div>
       </div>
@@ -124,42 +143,68 @@ export default {
     },
     async loadStats() {
       try {
-        // TODO: Remplacer par un appel API réel
+        const response = await this.$http.get('/api/ideas/stats/overview')
         this.stats = {
-          totalIdeas: 12,
-          totalUsers: 45,
-          totalVotes: 89
+          totalIdeas: response.data.total_ideas || 0,
+          totalUsers: response.data.total_users || 0,
+          totalVotes: response.data.total_votes || 0
         }
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error)
+        // Fallback to zero values if API fails
+        this.stats = {
+          totalIdeas: 0,
+          totalUsers: 0,
+          totalVotes: 0
+        }
       }
     },
     async loadRecentIdeas() {
       try {
-        // TODO: Remplacer par un appel API réel
-        this.recentIdeas = [
-          {
-            id: 1,
-            title: "Application de covoiturage pour zones rurales",
-            sector: "Transport",
-            description: "Une solution de transport partagé adaptée aux routes africaines...",
-            votes: 15,
-            comments: 3,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: 2,
-            title: "Plateforme d'éducation en langues locales",
-            sector: "Éducation",
-            description: "Système d'apprentissage utilisant les langues vernaculaires...",
-            votes: 23,
-            comments: 7,
-            createdAt: new Date(Date.now() - 86400000).toISOString()
+        const response = await this.$http.get('/api/ideas', {
+          params: {
+            limit: 6,
+            sort: 'created_at',
+            order: 'DESC'
           }
-        ]
+        })
+        this.recentIdeas = response.data.ideas || []
       } catch (error) {
-        console.error('Erreur lors du chargement des idées:', error)
+        console.error('Erreur lors du chargement des idées récentes:', error)
+        this.recentIdeas = []
       }
+    },
+
+    viewIdeaDetails(ideaId) {
+      this.$router.push(`/idea/${ideaId}`)
+    },
+
+    async voteIdea(ideaId) {
+      try {
+        if (!this.isAuthenticated) {
+          this.$router.push('/login')
+          return
+        }
+
+        await this.$http.post('/api/votes/regular', {
+          idea_id: ideaId,
+          vote_type: 'up'
+        })
+
+        // Recharger les idées récentes pour mettre à jour les compteurs
+        await this.loadRecentIdeas()
+      } catch (error) {
+        console.error('Erreur lors du vote:', error)
+        if (error.response?.status === 401) {
+          this.$router.push('/login')
+        }
+      }
+    },
+
+    truncateText(text, maxLength) {
+      if (!text) return ''
+      if (text.length <= maxLength) return text
+      return text.substring(0, maxLength) + '...'
     }
   },
   mounted() {
@@ -391,6 +436,31 @@ export default {
   font-weight: 500;
 }
 
+/* Section header with brain icon */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.section-header i {
+  font-size: 2rem;
+  color: #667eea;
+  display: flex;
+  align-items: center;
+}
+
+.section-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
 .recent-ideas h2 {
   color: #2c3e50;
   margin-bottom: 2rem;
@@ -408,11 +478,14 @@ export default {
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.3s;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
 }
 
 .idea-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .idea-card h3 {
@@ -433,11 +506,80 @@ export default {
   line-height: 1.6;
 }
 
+.idea-author {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.idea-author i {
+  color: #95a5a6;
+}
+
 .idea-meta {
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
   color: #95a5a6;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.idea-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.idea-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.vote-btn, .view-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vote-btn {
+  background-color: #f8f9fa;
+  color: #667eea;
+  border: 1px solid #e9ecef;
+}
+
+.vote-btn:hover {
+  background-color: #667eea;
+  color: white;
+}
+
+.vote-btn.voted {
+  background-color: #667eea;
+  color: white;
+}
+
+.view-btn {
+  background-color: #e74c3c;
+  color: white;
+  flex: 1;
+}
+
+.view-btn:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
 }
 
 .no-ideas {

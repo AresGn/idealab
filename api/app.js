@@ -11,6 +11,7 @@ import ideaRoutes from './routes/ideas.js'
 import userRoutes from './routes/users.js'
 import authRoutes from './routes/auth.js'
 import voteRoutes from './routes/votes.js'
+import adminRoutes from './routes/admin.js'
 
 // Import database functions
 import { testConnection } from './database.js'
@@ -48,6 +49,7 @@ app.use('/api/ideas', ideaRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/votes', voteRoutes)
+app.use('/api/admin', adminRoutes)
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

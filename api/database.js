@@ -179,7 +179,13 @@ export const initializeDatabase = async () => {
       // Make description nullable for Design Thinking mode
       await query(`ALTER TABLE ideas ALTER COLUMN description DROP NOT NULL`)
 
-      console.log('✅ Design Thinking columns migration completed successfully')
+      // Add development tracking columns
+      await query(`ALTER TABLE ideas ADD COLUMN IF NOT EXISTS development_status VARCHAR(20) DEFAULT 'not_started'`)
+      await query(`ALTER TABLE ideas ADD COLUMN IF NOT EXISTS development_progress INTEGER DEFAULT 0`)
+      await query(`ALTER TABLE ideas ADD COLUMN IF NOT EXISTS development_started_at TIMESTAMP`)
+      await query(`ALTER TABLE ideas ADD COLUMN IF NOT EXISTS development_completed_at TIMESTAMP`)
+
+      console.log('✅ Design Thinking and development columns migration completed successfully')
     } catch (error) {
       console.log('ℹ️ Migration already applied or error:', error.message)
     }
@@ -190,6 +196,8 @@ export const initializeDatabase = async () => {
     await query(`CREATE INDEX IF NOT EXISTS idx_ideas_sector ON ideas(sector)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_ideas_design_thinking ON ideas(design_thinking_mode)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_ideas_created_at ON ideas(created_at DESC)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_ideas_development_status ON ideas(development_status)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_ideas_development_progress ON ideas(development_progress)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_votes_idea_id ON votes(idea_id)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_comments_idea_id ON comments(idea_id)`)
     
@@ -228,6 +236,158 @@ export const closeDatabase = async () => {
     console.log('✅ Database connection closed')
   } catch (error) {
     console.error('❌ Error closing database connection:', error)
+  }
+}
+
+// Export all ideas to JSON for backup
+export const exportIdeasToJSON = async () => {
+  try {
+    console.log('🔄 Exporting all ideas to JSON...')
+
+    // Get all ideas with user information
+    const ideasQuery = `
+      SELECT
+        i.*,
+        u.username,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.avatar_url
+      FROM ideas i
+      LEFT JOIN users u ON i.user_id = u.id
+      ORDER BY i.created_at DESC
+    `
+
+    const ideasResult = await query(ideasQuery)
+
+    // Get all votes
+    const votesQuery = `
+      SELECT
+        v.*,
+        u.username
+      FROM votes v
+      LEFT JOIN users u ON v.user_id = u.id
+      ORDER BY v.created_at DESC
+    `
+
+    const votesResult = await query(votesQuery)
+
+    // Get all comments
+    const commentsQuery = `
+      SELECT
+        c.*,
+        u.username,
+        i.title as idea_title
+      FROM comments c
+      LEFT JOIN users u ON c.user_id = u.id
+      LEFT JOIN ideas i ON c.idea_id = i.id
+      WHERE c.is_active = true
+      ORDER BY c.created_at DESC
+    `
+
+    const commentsResult = await query(commentsQuery)
+
+    // Get platform statistics
+    const statsQuery = `
+      SELECT
+        COUNT(*) as total_ideas,
+        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_ideas,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_ideas,
+        SUM(votes_count) as total_votes,
+        SUM(comments_count) as total_comments,
+        SUM(views_count) as total_views
+      FROM ideas
+    `
+
+    const statsResult = await query(statsQuery)
+
+    // Get user count
+    const userCountResult = await query('SELECT COUNT(*) as total_users FROM users WHERE is_active = true')
+
+    const exportData = {
+      export_info: {
+        timestamp: new Date().toISOString(),
+        total_ideas: ideasResult.rows.length,
+        total_votes: votesResult.rows.length,
+        total_comments: commentsResult.rows.length,
+        platform_stats: {
+          ...statsResult.rows[0],
+          total_users: parseInt(userCountResult.rows[0].total_users)
+        }
+      },
+      ideas: ideasResult.rows,
+      votes: votesResult.rows,
+      comments: commentsResult.rows
+    }
+
+    console.log(`✅ Successfully exported ${ideasResult.rows.length} ideas, ${votesResult.rows.length} votes, and ${commentsResult.rows.length} comments`)
+
+    return exportData
+
+  } catch (error) {
+    console.error('❌ Error exporting ideas:', error)
+    throw error
+  }
+}
+
+// Clear all ideas and reset statistics
+export const clearAllIdeasAndStats = async () => {
+  try {
+    console.log('🔄 Clearing all ideas and resetting statistics...')
+
+    // Start transaction
+    await query('BEGIN')
+
+    // Delete all comments first (due to foreign key constraints)
+    await query('DELETE FROM comments')
+    console.log('✅ Deleted all comments')
+
+    // Delete all votes
+    await query('DELETE FROM votes')
+    console.log('✅ Deleted all votes')
+
+    // Delete all payment votes if table exists
+    try {
+      await query('DELETE FROM payment_votes')
+      console.log('✅ Deleted all payment votes')
+    } catch (error) {
+      // Table might not exist, continue
+      console.log('ℹ️ Payment votes table not found, skipping...')
+    }
+
+    // Delete all ideas
+    await query('DELETE FROM ideas')
+    console.log('✅ Deleted all ideas')
+
+    // Reset sequences to start from 1
+    await query('ALTER SEQUENCE ideas_id_seq RESTART WITH 1')
+    await query('ALTER SEQUENCE votes_id_seq RESTART WITH 1')
+    await query('ALTER SEQUENCE comments_id_seq RESTART WITH 1')
+
+    try {
+      await query('ALTER SEQUENCE payment_votes_id_seq RESTART WITH 1')
+    } catch (error) {
+      // Sequence might not exist, continue
+    }
+
+    console.log('✅ Reset all sequences')
+
+    // Commit transaction
+    await query('COMMIT')
+
+    console.log('✅ Successfully cleared all ideas and reset statistics')
+
+    return {
+      success: true,
+      message: 'All ideas, votes, comments deleted and statistics reset',
+      timestamp: new Date().toISOString()
+    }
+
+  } catch (error) {
+    // Rollback transaction on error
+    await query('ROLLBACK')
+    console.error('❌ Error clearing ideas and stats:', error)
+    throw error
   }
 }
 
