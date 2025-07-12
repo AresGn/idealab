@@ -122,6 +122,8 @@
 </template>
 
 <script>
+import { api } from '@/store'
+
 export default {
   name: 'Home',
   data() {
@@ -134,6 +136,12 @@ export default {
       recentIdeas: []
     }
   },
+  computed: {
+    isAuthenticated() {
+      // Vérifier s'il y a un token dans localStorage ou sessionStorage
+      return !!(localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token'))
+    }
+  },
   methods: {
     scrollToIdeas() {
       this.$refs.ideasSection.scrollIntoView({ behavior: 'smooth' })
@@ -143,14 +151,15 @@ export default {
     },
     async loadStats() {
       try {
-        const response = await this.$http.get('/api/ideas/stats/overview')
+        const response = await api.get('/ideas/stats/overview')
         this.stats = {
           totalIdeas: response.data.total_ideas || 0,
           totalUsers: response.data.total_users || 0,
           totalVotes: response.data.total_votes || 0
         }
+        console.log('✅ Stats loaded:', this.stats)
       } catch (error) {
-        console.error('Erreur lors du chargement des statistiques:', error)
+        console.error('❌ Erreur lors du chargement des statistiques:', error)
         // Fallback to zero values if API fails
         this.stats = {
           totalIdeas: 0,
@@ -161,7 +170,7 @@ export default {
     },
     async loadRecentIdeas() {
       try {
-        const response = await this.$http.get('/api/ideas', {
+        const response = await api.get('/ideas', {
           params: {
             limit: 6,
             sort: 'created_at',
@@ -169,8 +178,9 @@ export default {
           }
         })
         this.recentIdeas = response.data.ideas || []
+        console.log('✅ Recent ideas loaded:', this.recentIdeas.length, 'ideas')
       } catch (error) {
-        console.error('Erreur lors du chargement des idées récentes:', error)
+        console.error('❌ Erreur lors du chargement des idées récentes:', error)
         this.recentIdeas = []
       }
     },
@@ -186,7 +196,7 @@ export default {
           return
         }
 
-        await this.$http.post('/api/votes/regular', {
+        await api.post('/votes/regular', {
           idea_id: ideaId,
           vote_type: 'up'
         })

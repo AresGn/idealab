@@ -85,8 +85,7 @@
               <i class="fas fa-lightbulb"></i>
               Description
             </h2>
-            <div class="description-text">
-              {{ idea.description }}
+            <div class="description-text" v-html="formatDescription(idea.description)">
             </div>
           </section>
 
@@ -137,17 +136,17 @@
 
               <div v-if="idea.empathy_target_users" class="dt-field">
                 <h4>👥 Utilisateurs cibles</h4>
-                <p>{{ idea.empathy_target_users }}</p>
+                <div v-html="formatDescription(idea.empathy_target_users)"></div>
               </div>
 
               <div v-if="idea.empathy_needs_frustrations" class="dt-field">
                 <h4>😤 Besoins et frustrations</h4>
-                <p>{{ idea.empathy_needs_frustrations }}</p>
+                <div v-html="formatDescription(idea.empathy_needs_frustrations)"></div>
               </div>
 
               <div v-if="idea.empathy_usage_context" class="dt-field">
                 <h4>🎯 Contexte d'utilisation</h4>
-                <p>{{ idea.empathy_usage_context }}</p>
+                <div v-html="formatDescription(idea.empathy_usage_context)"></div>
               </div>
             </div>
 
@@ -160,17 +159,17 @@
 
               <div v-if="idea.define_problem_statement" class="dt-field">
                 <h4>❗ Énoncé du problème</h4>
-                <p>{{ idea.define_problem_statement }}</p>
+                <div v-html="formatDescription(idea.define_problem_statement)"></div>
               </div>
 
               <div v-if="idea.define_importance_reason" class="dt-field">
                 <h4>🔥 Pourquoi c'est important</h4>
-                <p>{{ idea.define_importance_reason }}</p>
+                <div v-html="formatDescription(idea.define_importance_reason)"></div>
               </div>
 
               <div v-if="idea.define_objective" class="dt-field">
                 <h4>🎯 Objectif</h4>
-                <p>{{ idea.define_objective }}</p>
+                <div v-html="formatDescription(idea.define_objective)"></div>
               </div>
             </div>
 
@@ -183,17 +182,17 @@
 
               <div v-if="idea.ideate_proposed_solution" class="dt-field">
                 <h4>💡 Solution proposée</h4>
-                <p>{{ idea.ideate_proposed_solution }}</p>
+                <div v-html="formatDescription(idea.ideate_proposed_solution)"></div>
               </div>
 
               <div v-if="idea.ideate_alternatives_considered" class="dt-field">
                 <h4>🔄 Alternatives considérées</h4>
-                <p>{{ idea.ideate_alternatives_considered }}</p>
+                <div v-html="formatDescription(idea.ideate_alternatives_considered)"></div>
               </div>
 
               <div v-if="idea.ideate_inspiration_references" class="dt-field">
                 <h4>🌟 Sources d'inspiration</h4>
-                <p>{{ idea.ideate_inspiration_references }}</p>
+                <div v-html="formatDescription(idea.ideate_inspiration_references)"></div>
               </div>
             </div>
           </section>
@@ -322,6 +321,34 @@ export default {
         'unknown': 'Non définie'
       }
       return willingnessMap[willingness] || willingness
+    },
+
+    formatDescription(text) {
+      if (!text) return ''
+
+      // Convertir le Markdown basique en HTML
+      return text
+        // Titres
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        // Gras
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Italique
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Listes à puces
+        .replace(/^\- (.*$)/gim, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        // Liens
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+        // Sauts de ligne
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>')
+        // Envelopper dans des paragraphes
+        .replace(/^(.*)$/gim, '<p>$1</p>')
+        // Nettoyer les paragraphes vides
+        .replace(/<p><\/p>/g, '')
+        .replace(/<p><br><\/p>/g, '')
     },
 
     getStatusText(status) {
@@ -492,6 +519,66 @@ export default {
   line-height: 1.6;
   color: #4a5568;
   font-size: 1.1rem;
+}
+
+.description-text h1,
+.description-text h2,
+.description-text h3 {
+  color: #2d3748;
+  margin: 1.5rem 0 1rem 0;
+  font-weight: 600;
+}
+
+.description-text h1 {
+  font-size: 1.8rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.description-text h2 {
+  font-size: 1.5rem;
+  color: #667eea;
+}
+
+.description-text h3 {
+  font-size: 1.3rem;
+  color: #4a5568;
+}
+
+.description-text ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.description-text li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.description-text strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.description-text em {
+  color: #667eea;
+  font-style: italic;
+}
+
+.description-text a {
+  color: #667eea;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.description-text a:hover {
+  border-bottom-color: #667eea;
+}
+
+.description-text p {
+  margin: 1rem 0;
+  line-height: 1.8;
 }
 
 .sidebar {
@@ -758,6 +845,49 @@ export default {
   color: #2d3748;
   line-height: 1.6;
   margin: 0;
+}
+
+.dt-field div {
+  color: #2d3748;
+  line-height: 1.6;
+}
+
+.dt-field h1,
+.dt-field h2,
+.dt-field h3 {
+  color: #2d3748;
+  margin: 1rem 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.dt-field h2 {
+  font-size: 1.3rem;
+  color: #667eea;
+}
+
+.dt-field h3 {
+  font-size: 1.1rem;
+  color: #4a5568;
+}
+
+.dt-field ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.dt-field li {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.dt-field strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.dt-field em {
+  color: #667eea;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
