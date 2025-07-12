@@ -114,10 +114,17 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
       console.log(`❤️  Health Check: http://localhost:${PORT}/api/health`)
     }
 
-    // Test database connection
-    console.log('')
-    await testConnection()
-    console.log('')
+    // Test database connection (only if DATABASE_URL is configured)
+    if (process.env.DATABASE_URL || (process.env.DB_HOST && process.env.DB_NAME)) {
+      console.log('')
+      await testConnection()
+      console.log('')
+    } else {
+      console.log('')
+      console.log('⚠️  Database not configured - running in development mode without database')
+      console.log('   Configure DATABASE_URL or DB_* variables to enable database features')
+      console.log('')
+    }
   })
 }
 
