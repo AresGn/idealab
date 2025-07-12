@@ -42,9 +42,10 @@ BCRYPT_ROUNDS=12
 ### 2. Corrections Apportées
 
 ✅ **Corrigé le problème path-to-regexp** dans `vercel.json`
+✅ **Résolu le conflit builds/functions** qui causait l'erreur de build
 ✅ **Optimisé les routes** pour Vercel
 ✅ **Ajouté la gestion des assets statiques**
-✅ **Configuré les timeouts** pour les fonctions serverless
+✅ **Configuration simplifiée** sans conflits
 
 ### 3. Structure des Routes Vercel
 
@@ -105,6 +106,9 @@ Si vous avez encore des erreurs :
 
 ### Erreur "Missing parameter name"
 ✅ **RÉSOLU** - Problème dans vercel.json corrigé
+
+### Erreur "Conflicting functions and builds configuration"
+✅ **RÉSOLU** - Configuration simplifiée sans section functions conflictuelle
 
 ### Erreur de connexion DB
 - Vérifiez que `DATABASE_URL` est correctement définie
