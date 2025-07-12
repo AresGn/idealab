@@ -269,7 +269,7 @@ router.get('/in-development', async (req, res) => {
     const { status = 'all', sort = 'progress' } = req.query
 
     let whereClause = 'WHERE i.status = $1 AND i.votes_count >= $2'
-    let queryParams = ['approved', 50] // Minimum 50 votes to enter development
+    let queryParams = ['approved', 5] // Minimum 5 votes to enter development (reduced for testing)
     let paramCount = 2
 
     // Add development status filter if provided
