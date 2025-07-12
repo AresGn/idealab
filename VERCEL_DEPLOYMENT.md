@@ -10,7 +10,7 @@ Allez dans votre dashboard Vercel > Votre projet > Settings > Environment Variab
 
 ```bash
 # Base de données (CRITIQUE)
-DATABASE_URL=postgresql://idea_platform_owner:npg_pnUK09JuPrlD@ep-jolly-bread-a81ktxeh-pooler.eastus2.azure.neon.tech/idea_platform?sslmode=require
+DATABASE_URL=postgresql://username:password@host:port/idealab_production
 
 # JWT Secret (CRITIQUE - générez une clé sécurisée)
 JWT_SECRET=votre-cle-jwt-super-securisee-ici
