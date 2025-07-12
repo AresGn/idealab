@@ -253,6 +253,73 @@ router.get('/stats/trends', async (req, res) => {
   }
 })
 
+// GET /api/ideas/in-development - Get ideas that are in development phase
+router.get('/in-development', async (req, res) => {
+  try {
+    const { status = 'all', sort = 'progress' } = req.query
+
+    let whereClause = 'WHERE i.status = $1 AND i.votes_count >= $2'
+    let queryParams = ['approved', 50] // Minimum 50 votes to enter development
+    let paramCount = 2
+
+    // Add development status filter if provided
+    if (status !== 'all') {
+      paramCount++
+      whereClause += ` AND i.development_status = $${paramCount}`
+      queryParams.push(status)
+    }
+
+    // Handle sorting
+    let orderClause = ''
+    switch (sort) {
+      case 'progress':
+        orderClause = 'ORDER BY i.development_progress DESC'
+        break
+      case 'votes':
+        orderClause = 'ORDER BY i.votes_count DESC'
+        break
+      case 'start_date':
+        orderClause = 'ORDER BY i.development_start_date DESC'
+        break
+      default:
+        orderClause = 'ORDER BY i.development_progress DESC'
+    }
+
+    const developmentQuery = `
+      SELECT
+        i.*,
+        u.username,
+        u.first_name,
+        u.last_name,
+        u.avatar_url
+      FROM ideas i
+      LEFT JOIN users u ON i.user_id = u.id
+      ${whereClause}
+      ${orderClause}
+    `
+
+    const result = await query(developmentQuery, queryParams)
+
+    // Simulate development team data (in a real app, this would come from a separate table)
+    const ideasWithTeams = result.rows.map(idea => ({
+      ...idea,
+      development_team: [
+        { id: 1, name: 'Équipe de développement', role: 'Développeur' },
+        { id: 2, name: 'Chef de projet', role: 'Manager' }
+      ]
+    }))
+
+    res.json({
+      ideas: ideasWithTeams,
+      total: ideasWithTeams.length
+    })
+
+  } catch (error) {
+    console.error('Error fetching development ideas:', error)
+    res.status(500).json({ error: 'Failed to fetch development ideas' })
+  }
+})
+
 // GET /api/ideas/:id - Get a specific idea
 router.get('/:id', async (req, res) => {
   try {
@@ -477,78 +544,6 @@ router.delete('/:id', authenticateToken, requireOwnership('idea'), async (req, r
   } catch (error) {
     console.error('Error deleting idea:', error)
     res.status(500).json({ error: 'Failed to delete idea' })
-  }
-})
-
-// GET /api/ideas/in-development - Get ideas that are in development phase
-router.get('/in-development', async (req, res) => {
-  try {
-    const { status = 'all', sort = 'progress' } = req.query
-
-    let whereClause = 'WHERE i.status = $1 AND i.votes_count >= $2'
-    let queryParams = ['approved', 50] // Minimum 50 votes to enter development
-    let paramCount = 2
-
-    // Add development status filter if provided
-    if (status !== 'all') {
-      paramCount++
-      whereClause += ` AND i.development_status = $${paramCount}`
-      queryParams.push(status)
-    }
-
-    // Handle sorting
-    let orderClause = ''
-    switch (sort) {
-      case 'progress':
-        orderClause = 'ORDER BY i.development_progress DESC'
-        break
-      case 'votes':
-        orderClause = 'ORDER BY i.votes_count DESC'
-        break
-      case 'start_date':
-        orderClause = 'ORDER BY i.development_start_date DESC'
-        break
-      default:
-        orderClause = 'ORDER BY i.development_progress DESC'
-    }
-
-    const developmentQuery = `
-      SELECT
-        i.*,
-        u.username,
-        u.first_name,
-        u.last_name,
-        u.avatar_url,
-        COALESCE(i.development_progress, 0) as progress,
-        i.development_status,
-        i.development_start_date,
-        i.development_notes,
-        i.estimated_completion
-      FROM ideas i
-      LEFT JOIN users u ON i.user_id = u.id
-      ${whereClause}
-      ${orderClause}
-    `
-
-    const result = await query(developmentQuery, queryParams)
-
-    // Simulate development team data (in a real app, this would come from a separate table)
-    const ideasWithTeams = result.rows.map(idea => ({
-      ...idea,
-      development_team: [
-        { id: 1, name: 'Équipe de développement', role: 'Développeur' },
-        { id: 2, name: 'Chef de projet', role: 'Manager' }
-      ]
-    }))
-
-    res.json({
-      ideas: ideasWithTeams,
-      total: ideasWithTeams.length
-    })
-
-  } catch (error) {
-    console.error('Error fetching development ideas:', error)
-    res.status(500).json({ error: 'Failed to fetch development ideas' })
   }
 })
 
