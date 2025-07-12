@@ -111,7 +111,91 @@
               <i class="fas fa-credit-card"></i>
               Disposition à payer
             </h3>
-            <p>{{ idea.willingness_to_pay }}</p>
+            <p>{{ formatWillingnessToPay(idea.willingness_to_pay) }}</p>
+          </section>
+
+          <!-- Section Design Thinking -->
+          <section v-if="idea.design_thinking_mode" class="design-thinking-section">
+            <h2>
+              <i class="fas fa-brain"></i>
+              Processus Design Thinking
+            </h2>
+
+            <div class="design-thinking-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: idea.completion_percentage + '%' }"></div>
+              </div>
+              <span class="progress-text">{{ idea.completion_percentage }}% complété</span>
+            </div>
+
+            <!-- Phase EMPATHIZE -->
+            <div class="dt-phase empathize">
+              <h3>
+                <i class="fas fa-heart"></i>
+                1. EMPATHIZE - Comprendre les utilisateurs
+              </h3>
+
+              <div v-if="idea.empathy_target_users" class="dt-field">
+                <h4>👥 Utilisateurs cibles</h4>
+                <p>{{ idea.empathy_target_users }}</p>
+              </div>
+
+              <div v-if="idea.empathy_needs_frustrations" class="dt-field">
+                <h4>😤 Besoins et frustrations</h4>
+                <p>{{ idea.empathy_needs_frustrations }}</p>
+              </div>
+
+              <div v-if="idea.empathy_usage_context" class="dt-field">
+                <h4>🎯 Contexte d'utilisation</h4>
+                <p>{{ idea.empathy_usage_context }}</p>
+              </div>
+            </div>
+
+            <!-- Phase DEFINE -->
+            <div class="dt-phase define">
+              <h3>
+                <i class="fas fa-bullseye"></i>
+                2. DEFINE - Définir le problème
+              </h3>
+
+              <div v-if="idea.define_problem_statement" class="dt-field">
+                <h4>❗ Énoncé du problème</h4>
+                <p>{{ idea.define_problem_statement }}</p>
+              </div>
+
+              <div v-if="idea.define_importance_reason" class="dt-field">
+                <h4>🔥 Pourquoi c'est important</h4>
+                <p>{{ idea.define_importance_reason }}</p>
+              </div>
+
+              <div v-if="idea.define_objective" class="dt-field">
+                <h4>🎯 Objectif</h4>
+                <p>{{ idea.define_objective }}</p>
+              </div>
+            </div>
+
+            <!-- Phase IDEATE -->
+            <div class="dt-phase ideate">
+              <h3>
+                <i class="fas fa-lightbulb"></i>
+                3. IDEATE - Générer des solutions
+              </h3>
+
+              <div v-if="idea.ideate_proposed_solution" class="dt-field">
+                <h4>💡 Solution proposée</h4>
+                <p>{{ idea.ideate_proposed_solution }}</p>
+              </div>
+
+              <div v-if="idea.ideate_alternatives_considered" class="dt-field">
+                <h4>🔄 Alternatives considérées</h4>
+                <p>{{ idea.ideate_alternatives_considered }}</p>
+              </div>
+
+              <div v-if="idea.ideate_inspiration_references" class="dt-field">
+                <h4>🌟 Sources d'inspiration</h4>
+                <p>{{ idea.ideate_inspiration_references }}</p>
+              </div>
+            </div>
           </section>
         </div>
 
@@ -228,6 +312,16 @@ export default {
         style: 'currency',
         currency: 'XOF'
       }).format(amount)
+    },
+
+    formatWillingnessToPay(willingness) {
+      const willingnessMap = {
+        'low': 'Faible',
+        'medium': 'Moyenne',
+        'high': 'Élevée',
+        'unknown': 'Non définie'
+      }
+      return willingnessMap[willingness] || willingness
     },
 
     getStatusText(status) {
@@ -541,27 +635,175 @@ export default {
   transform: none;
 }
 
+/* Design Thinking Section Styles */
+.design-thinking-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+}
+
+.design-thinking-section h2 {
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.design-thinking-section h2 i {
+  color: #667eea;
+  font-size: 1.5rem;
+}
+
+.design-thinking-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 80px;
+  text-align: right;
+}
+
+.dt-phase {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-left: 4px solid transparent;
+}
+
+.dt-phase.empathize {
+  border-left-color: #e53e3e;
+}
+
+.dt-phase.define {
+  border-left-color: #dd6b20;
+}
+
+.dt-phase.ideate {
+  border-left-color: #38a169;
+}
+
+.dt-phase h3 {
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.dt-phase h3 i {
+  font-size: 1.25rem;
+}
+
+.empathize h3 i {
+  color: #e53e3e;
+}
+
+.define h3 i {
+  color: #dd6b20;
+}
+
+.ideate h3 i {
+  color: #38a169;
+}
+
+.dt-field {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.dt-field h4 {
+  color: #4a5568;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dt-field p {
+  color: #2d3748;
+  line-height: 1.6;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .idea-detail-container {
     padding: 1rem;
   }
-  
+
   .idea-content {
     grid-template-columns: 1fr;
   }
-  
+
   .idea-meta {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .idea-stats {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .idea-actions {
     flex-direction: column;
+  }
+
+  .design-thinking-section {
+    padding: 1rem;
+    margin-top: 2rem;
+  }
+
+  .design-thinking-progress {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .progress-text {
+    min-width: auto;
+  }
+
+  .dt-phase {
+    padding: 1rem;
+  }
+
+  .dt-phase h3 {
+    font-size: 1.1rem;
   }
 }
 </style>

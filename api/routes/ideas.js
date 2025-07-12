@@ -109,9 +109,19 @@ router.get('/stats/overview', async (req, res) => {
 
     // Get user count
     const userCountResult = await query('SELECT COUNT(*) as total_users FROM users WHERE is_active = true')
-    stats.total_users = parseInt(userCountResult.rows[0].total_users)
 
-    res.json(stats)
+    // Convert all values to integers to ensure consistent data types
+    const formattedStats = {
+      total_ideas: parseInt(stats.total_ideas) || 0,
+      approved_ideas: parseInt(stats.approved_ideas) || 0,
+      pending_ideas: parseInt(stats.pending_ideas) || 0,
+      total_votes: parseInt(stats.total_votes) || 0,
+      total_comments: parseInt(stats.total_comments) || 0,
+      total_views: parseInt(stats.total_views) || 0,
+      total_users: parseInt(userCountResult.rows[0].total_users) || 0
+    }
+
+    res.json(formattedStats)
 
   } catch (error) {
     console.error('Error fetching stats:', error)
