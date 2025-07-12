@@ -27,7 +27,6 @@ test-auto-publication.md
 # Config files not needed in production
 postcss.config.js
 tailwind.config.js
-vite.config.js
 
 # Local environment files
 .env.local
