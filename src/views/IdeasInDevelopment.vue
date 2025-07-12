@@ -225,7 +225,7 @@ export default {
         })
         
         if (result.success) {
-          developmentIdeas.value = result.data || []
+          developmentIdeas.value = result.data?.ideas || []
         } else {
           error.value = result.error || 'Erreur lors du chargement'
         }
