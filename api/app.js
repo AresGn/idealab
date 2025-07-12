@@ -58,13 +58,25 @@ app.get('/api/health', (req, res) => {
   })
 })
 
+// 404 handler for API routes (must be before catch-all)
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: {
+      message: 'API endpoint not found',
+      status: 404,
+      path: req.path
+    }
+  })
+})
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '..', 'public')))
-  
-  // Handle client-side routing
+  // Serve static files from dist directory
+  app.use(express.static(path.join(__dirname, '..', 'dist')))
+
+  // Handle client-side routing - catch-all for non-API routes
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'))
+    res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
   })
 } else {
   // Development route
@@ -81,23 +93,12 @@ if (process.env.NODE_ENV === 'production') {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack)
-  
+
   res.status(err.status || 500).json({
     error: {
       message: err.message || 'Internal Server Error',
       status: err.status || 500,
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
-  })
-})
-
-// 404 handler for API routes
-app.use('/api', (req, res) => {
-  res.status(404).json({
-    error: {
-      message: 'API endpoint not found',
-      status: 404,
-      path: req.path
     }
   })
 })
