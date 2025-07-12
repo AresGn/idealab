@@ -69,8 +69,8 @@ app.use('/api', (req, res) => {
   })
 })
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
+// Serve static files in production (but not in Vercel serverless environment)
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   // Serve static files from dist directory
   app.use(express.static(path.join(__dirname, '..', 'dist')))
 
@@ -78,8 +78,8 @@ if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
   })
-} else {
-  // Development route
+} else if (!process.env.VERCEL) {
+  // Development route (only when not in Vercel)
   app.get('/', (req, res) => {
     res.json({
       message: 'IdéaLab API',
