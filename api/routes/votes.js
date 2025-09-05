@@ -1,14 +1,22 @@
 import express from 'express'
 import { query } from '../database.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticateToken, optionalAuth } from '../middleware/auth.js'
+import {
+  getOrCreateSessionId,
+  getClientIP,
+  isIPBlocked,
+  isRateLimited,
+  detectSuspiciousBehavior
+} from '../utils/anonymousUser.js'
 
 const router = express.Router()
 
 // POST /api/votes/regular - Vote standard (up/down) pour une idée
-router.post('/regular', authenticateToken, async (req, res) => {
+router.post('/regular', optionalAuth, async (req, res) => {
   try {
     const { idea_id, vote_type } = req.body
-    const user_id = req.user.id
+    const user_id = req.user?.id || null
+    const ip_address = getClientIP(req)
 
     // Validation
     if (!idea_id || !vote_type) {
@@ -23,6 +31,29 @@ router.post('/regular', authenticateToken, async (req, res) => {
       })
     }
 
+    // Vérifications de sécurité pour les utilisateurs anonymes
+    if (!user_id) {
+      if (isIPBlocked(ip_address)) {
+        return res.status(403).json({
+          error: 'Adresse IP bloquée'
+        })
+      }
+
+      if (isRateLimited(ip_address)) {
+        return res.status(429).json({
+          error: 'Trop de votes. Veuillez réessayer plus tard.'
+        })
+      }
+
+      // Détecter les comportements suspects
+      const session_id_temp = req.cookies?.anonymous_session_id || 'temp'
+      if (detectSuspiciousBehavior(ip_address, session_id_temp)) {
+        return res.status(429).json({
+          error: 'Comportement suspect détecté. Veuillez ralentir vos actions.'
+        })
+      }
+    }
+
     // Vérifier que l'idée existe
     const ideaCheck = await query('SELECT id FROM ideas WHERE id = $1', [idea_id])
     if (ideaCheck.rows.length === 0) {
@@ -31,17 +62,33 @@ router.post('/regular', authenticateToken, async (req, res) => {
       })
     }
 
-    // Vérifier si l'utilisateur a déjà voté
-    const existingVote = await query(
-      'SELECT id, vote_type FROM votes WHERE user_id = $1 AND idea_id = $2',
-      [user_id, idea_id]
-    )
+    let existingVote
+    let session_id = null
+
+    if (user_id) {
+      // Utilisateur connecté
+      existingVote = await query(
+        'SELECT id, vote_type FROM votes WHERE user_id = $1 AND idea_id = $2',
+        [user_id, idea_id]
+      )
+    } else {
+      // Utilisateur anonyme
+      session_id = getOrCreateSessionId(req, res)
+      existingVote = await query(
+        'SELECT id, vote_type FROM votes WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL',
+        [session_id, idea_id]
+      )
+    }
 
     if (existingVote.rows.length > 0) {
       // Si même type de vote, supprimer le vote (toggle)
       if (existingVote.rows[0].vote_type === vote_type) {
-        await query('DELETE FROM votes WHERE user_id = $1 AND idea_id = $2', [user_id, idea_id])
-        
+        if (user_id) {
+          await query('DELETE FROM votes WHERE user_id = $1 AND idea_id = $2', [user_id, idea_id])
+        } else {
+          await query('DELETE FROM votes WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL', [session_id, idea_id])
+        }
+
         res.json({
           message: 'Vote supprimé',
           action: 'removed',
@@ -49,11 +96,18 @@ router.post('/regular', authenticateToken, async (req, res) => {
         })
       } else {
         // Sinon, mettre à jour le vote
-        await query(
-          'UPDATE votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND idea_id = $3',
-          [vote_type, user_id, idea_id]
-        )
-        
+        if (user_id) {
+          await query(
+            'UPDATE votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND idea_id = $3',
+            [vote_type, user_id, idea_id]
+          )
+        } else {
+          await query(
+            'UPDATE votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE session_id = $2 AND idea_id = $3 AND user_id IS NULL',
+            [vote_type, session_id, idea_id]
+          )
+        }
+
         res.json({
           message: 'Vote mis à jour',
           action: 'updated',
@@ -63,10 +117,10 @@ router.post('/regular', authenticateToken, async (req, res) => {
     } else {
       // Créer un nouveau vote
       await query(
-        'INSERT INTO votes (user_id, idea_id, vote_type) VALUES ($1, $2, $3)',
-        [user_id, idea_id, vote_type]
+        'INSERT INTO votes (user_id, idea_id, vote_type, session_id, ip_address) VALUES ($1, $2, $3, $4, $5)',
+        [user_id, idea_id, vote_type, session_id, ip_address]
       )
-      
+
       res.json({
         message: 'Vote enregistré',
         action: 'created',
@@ -81,10 +135,11 @@ router.post('/regular', authenticateToken, async (req, res) => {
 })
 
 // POST /api/votes/payment - Vote de paiement (would_pay/would_not_pay)
-router.post('/payment', authenticateToken, async (req, res) => {
+router.post('/payment', optionalAuth, async (req, res) => {
   try {
     const { idea_id, vote_type } = req.body
-    const user_id = req.user.id
+    const user_id = req.user?.id || null
+    const ip_address = getClientIP(req)
 
     // Validation
     if (!idea_id || !vote_type) {
@@ -99,6 +154,29 @@ router.post('/payment', authenticateToken, async (req, res) => {
       })
     }
 
+    // Vérifications de sécurité pour les utilisateurs anonymes
+    if (!user_id) {
+      if (isIPBlocked(ip_address)) {
+        return res.status(403).json({
+          error: 'Adresse IP bloquée'
+        })
+      }
+
+      if (isRateLimited(ip_address)) {
+        return res.status(429).json({
+          error: 'Trop de votes. Veuillez réessayer plus tard.'
+        })
+      }
+
+      // Détecter les comportements suspects
+      const session_id_temp = req.cookies?.anonymous_session_id || 'temp'
+      if (detectSuspiciousBehavior(ip_address, session_id_temp)) {
+        return res.status(429).json({
+          error: 'Comportement suspect détecté. Veuillez ralentir vos actions.'
+        })
+      }
+    }
+
     // Vérifier que l'idée existe
     const ideaCheck = await query('SELECT id FROM ideas WHERE id = $1', [idea_id])
     if (ideaCheck.rows.length === 0) {
@@ -107,17 +185,33 @@ router.post('/payment', authenticateToken, async (req, res) => {
       })
     }
 
-    // Vérifier si l'utilisateur a déjà voté pour le paiement
-    const existingVote = await query(
-      'SELECT id, vote_type FROM payment_votes WHERE user_id = $1 AND idea_id = $2',
-      [user_id, idea_id]
-    )
+    let existingVote
+    let session_id = null
+
+    if (user_id) {
+      // Utilisateur connecté
+      existingVote = await query(
+        'SELECT id, vote_type FROM payment_votes WHERE user_id = $1 AND idea_id = $2',
+        [user_id, idea_id]
+      )
+    } else {
+      // Utilisateur anonyme
+      session_id = getOrCreateSessionId(req, res)
+      existingVote = await query(
+        'SELECT id, vote_type FROM payment_votes WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL',
+        [session_id, idea_id]
+      )
+    }
 
     if (existingVote.rows.length > 0) {
       // Si même type de vote, supprimer le vote (toggle)
       if (existingVote.rows[0].vote_type === vote_type) {
-        await query('DELETE FROM payment_votes WHERE user_id = $1 AND idea_id = $2', [user_id, idea_id])
-        
+        if (user_id) {
+          await query('DELETE FROM payment_votes WHERE user_id = $1 AND idea_id = $2', [user_id, idea_id])
+        } else {
+          await query('DELETE FROM payment_votes WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL', [session_id, idea_id])
+        }
+
         res.json({
           message: 'Vote de paiement supprimé',
           action: 'removed',
@@ -125,11 +219,18 @@ router.post('/payment', authenticateToken, async (req, res) => {
         })
       } else {
         // Sinon, mettre à jour le vote
-        await query(
-          'UPDATE payment_votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND idea_id = $3',
-          [vote_type, user_id, idea_id]
-        )
-        
+        if (user_id) {
+          await query(
+            'UPDATE payment_votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND idea_id = $3',
+            [vote_type, user_id, idea_id]
+          )
+        } else {
+          await query(
+            'UPDATE payment_votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE session_id = $2 AND idea_id = $3 AND user_id IS NULL',
+            [vote_type, session_id, idea_id]
+          )
+        }
+
         res.json({
           message: 'Vote de paiement mis à jour',
           action: 'updated',
@@ -139,10 +240,10 @@ router.post('/payment', authenticateToken, async (req, res) => {
     } else {
       // Créer un nouveau vote de paiement
       await query(
-        'INSERT INTO payment_votes (user_id, idea_id, vote_type) VALUES ($1, $2, $3)',
-        [user_id, idea_id, vote_type]
+        'INSERT INTO payment_votes (user_id, idea_id, vote_type, session_id, ip_address) VALUES ($1, $2, $3, $4, $5)',
+        [user_id, idea_id, vote_type, session_id, ip_address]
       )
-      
+
       res.json({
         message: 'Vote de paiement enregistré',
         action: 'created',
@@ -212,24 +313,48 @@ router.get('/idea/:id', async (req, res) => {
 })
 
 // GET /api/votes/user/:idea_id - Obtenir les votes d'un utilisateur pour une idée
-router.get('/user/:idea_id', authenticateToken, async (req, res) => {
+router.get('/user/:idea_id', optionalAuth, async (req, res) => {
   try {
     const { idea_id } = req.params
-    const user_id = req.user.id
+    const user_id = req.user?.id || null
 
-    // Vote standard de l'utilisateur
-    const regularVoteQuery = `
-      SELECT vote_type FROM votes 
-      WHERE user_id = $1 AND idea_id = $2
-    `
-    const regularVote = await query(regularVoteQuery, [user_id, idea_id])
+    let regularVote, paymentVote
 
-    // Vote de paiement de l'utilisateur
-    const paymentVoteQuery = `
-      SELECT vote_type FROM payment_votes 
-      WHERE user_id = $1 AND idea_id = $2
-    `
-    const paymentVote = await query(paymentVoteQuery, [user_id, idea_id])
+    if (user_id) {
+      // Utilisateur connecté
+      const regularVoteQuery = `
+        SELECT vote_type FROM votes
+        WHERE user_id = $1 AND idea_id = $2
+      `
+      regularVote = await query(regularVoteQuery, [user_id, idea_id])
+
+      const paymentVoteQuery = `
+        SELECT vote_type FROM payment_votes
+        WHERE user_id = $1 AND idea_id = $2
+      `
+      paymentVote = await query(paymentVoteQuery, [user_id, idea_id])
+    } else {
+      // Utilisateur anonyme - vérifier via session_id
+      const session_id = req.cookies?.anonymous_session_id
+
+      if (session_id) {
+        const regularVoteQuery = `
+          SELECT vote_type FROM votes
+          WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL
+        `
+        regularVote = await query(regularVoteQuery, [session_id, idea_id])
+
+        const paymentVoteQuery = `
+          SELECT vote_type FROM payment_votes
+          WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL
+        `
+        paymentVote = await query(paymentVoteQuery, [session_id, idea_id])
+      } else {
+        // Pas de session, pas de votes
+        regularVote = { rows: [] }
+        paymentVote = { rows: [] }
+      }
+    }
 
     res.json({
       regular_vote: regularVote.rows.length > 0 ? regularVote.rows[0].vote_type : null,

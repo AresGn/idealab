@@ -222,44 +222,24 @@
       </div>
 
       <!-- Section commentaires -->
-      <div class="comments-section">
-        <h2>
-          <i class="fas fa-comments"></i>
-          Commentaires ({{ idea.comments_count || 0 }})
-        </h2>
-        
-        <div class="add-comment">
-          <textarea
-            v-model="newComment"
-            placeholder="Ajoutez votre commentaire..."
-            rows="3"
-          ></textarea>
-          <button class="btn btn-primary" @click="addComment" :disabled="!newComment.trim() || commenting">
-            <i v-if="commenting" class="fas fa-spinner fa-spin"></i>
-            <i v-else class="fas fa-paper-plane"></i>
-            {{ commenting ? 'Envoi...' : 'Commenter' }}
-          </button>
-        </div>
-
-        <div class="comments-list">
-          <div class="comment-placeholder">
-            <i class="fas fa-comments"></i>
-            <p>Les commentaires seront bientôt disponibles</p>
-          </div>
-        </div>
-      </div>
+      <CommentsSection
+        :idea-id="idea.id"
+        @comment-added="handleCommentAdded"
+      />
     </div>
   </div>
 </template>
 
 <script>
 import VotingButtons from '../components/VotingButtons.vue'
+import CommentsSection from '../components/CommentsSection.vue'
 import { useIdeasStore } from '@/store'
 
 export default {
   name: 'IdeaDetail',
   components: {
-    VotingButtons
+    VotingButtons,
+    CommentsSection
   },
   setup() {
     const ideasStore = useIdeasStore()
@@ -270,9 +250,7 @@ export default {
       idea: null,
       loading: true,
       error: null,
-      voting: false,
-      commenting: false,
-      newComment: ''
+      voting: false
     }
   },
   methods: {
@@ -381,19 +359,10 @@ export default {
       }
     },
 
-    async addComment() {
-      if (!this.newComment.trim()) return
-      
-      this.commenting = true
-      try {
-        // Simulation d'API call
-        await new Promise(resolve => setTimeout(resolve, 500))
-        this.idea.comments_count++
-        this.newComment = ''
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout du commentaire:', error)
-      } finally {
-        this.commenting = false
+    handleCommentAdded(comment) {
+      // Mettre à jour le compteur de commentaires
+      if (this.idea) {
+        this.idea.comments_count = (this.idea.comments_count || 0) + 1
       }
     }
   },
@@ -644,50 +613,7 @@ export default {
   font-size: 0.9rem;
 }
 
-.comments-section {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
 
-.comments-section h2 {
-  color: #2d3748;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.add-comment {
-  margin-bottom: 2rem;
-}
-
-.add-comment textarea {
-  width: 100%;
-  padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  resize: vertical;
-  margin-bottom: 1rem;
-}
-
-.add-comment textarea:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.comment-placeholder {
-  text-align: center;
-  padding: 3rem;
-  color: #718096;
-}
-
-.comment-placeholder i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
 
 .btn {
   padding: 0.75rem 1.5rem;
