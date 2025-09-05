@@ -79,6 +79,12 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/idea/:id/:slug',
+    name: 'IdeaDetailWithSlug',
+    component: () => import('../views/IdeaDetail.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/edit-idea/:id',
     name: 'EditIdea',
     component: () => import('../views/EditIdea.vue'),

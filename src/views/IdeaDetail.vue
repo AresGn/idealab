@@ -1,11 +1,13 @@
 <template>
   <div class="idea-detail-container">
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
-      </div>
-      <p>Chargement de l'idée...</p>
-    </div>
+    <LoadingState
+      v-if="loading"
+      type="fullscreen"
+      size="large"
+      title="Chargement de l'idée..."
+      description="Nous récupérons tous les détails de cette innovation pour vous."
+      spinner-variant="spinner"
+    />
 
     <div v-else-if="error" class="error-state">
       <div class="error-icon">
@@ -233,13 +235,15 @@
 <script>
 import VotingButtons from '../components/VotingButtons.vue'
 import CommentsSection from '../components/CommentsSection.vue'
+import LoadingState from '../components/LoadingState.vue'
 import { useIdeasStore } from '@/store'
 
 export default {
   name: 'IdeaDetail',
   components: {
     VotingButtons,
-    CommentsSection
+    CommentsSection,
+    LoadingState
   },
   setup() {
     const ideasStore = useIdeasStore()

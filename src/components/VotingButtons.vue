@@ -7,20 +7,32 @@
         Votre avis
       </h4>
       <div class="vote-buttons">
-        <button 
+        <button
           @click="handleRegularVote('up')"
-          :class="['vote-btn', 'vote-up', { active: userVotes.regular_vote === 'up' }]"
+          :class="['vote-btn', 'vote-up', { active: userVotes.regular_vote === 'up', loading: voting }]"
           :disabled="voting"
         >
-          <i class="fas fa-thumbs-up"></i>
+          <LoadingSpinner
+            v-if="voting && votingType === 'regular_up'"
+            variant="dots"
+            size="small"
+            :show-text="false"
+          />
+          <i v-else class="fas fa-thumbs-up"></i>
           <span>{{ voteCounts.regular.up }}</span>
         </button>
-        <button 
+        <button
           @click="handleRegularVote('down')"
-          :class="['vote-btn', 'vote-down', { active: userVotes.regular_vote === 'down' }]"
+          :class="['vote-btn', 'vote-down', { active: userVotes.regular_vote === 'down', loading: voting }]"
           :disabled="voting"
         >
-          <i class="fas fa-thumbs-down"></i>
+          <LoadingSpinner
+            v-if="voting && votingType === 'regular_down'"
+            variant="dots"
+            size="small"
+            :show-text="false"
+          />
+          <i v-else class="fas fa-thumbs-down"></i>
           <span>{{ voteCounts.regular.down }}</span>
         </button>
       </div>
@@ -33,21 +45,33 @@
         Seriez-vous prêt à payer pour cette solution ?
       </h4>
       <div class="payment-buttons">
-        <button 
+        <button
           @click="handlePaymentVote('would_pay')"
-          :class="['payment-btn', 'would-pay', { active: userVotes.payment_vote === 'would_pay' }]"
+          :class="['payment-btn', 'would-pay', { active: userVotes.payment_vote === 'would_pay', loading: voting }]"
           :disabled="voting"
         >
-          <i class="fas fa-credit-card"></i>
+          <LoadingSpinner
+            v-if="voting && votingType === 'payment_would_pay'"
+            variant="pulse"
+            size="small"
+            :show-text="false"
+          />
+          <i v-else class="fas fa-credit-card"></i>
           <span class="btn-text">Je paierais pour ça</span>
           <span class="vote-count">{{ voteCounts.payment.would_pay }}</span>
         </button>
-        <button 
+        <button
           @click="handlePaymentVote('would_not_pay')"
-          :class="['payment-btn', 'would-not-pay', { active: userVotes.payment_vote === 'would_not_pay' }]"
+          :class="['payment-btn', 'would-not-pay', { active: userVotes.payment_vote === 'would_not_pay', loading: voting }]"
           :disabled="voting"
         >
-          <i class="fas fa-times-circle"></i>
+          <LoadingSpinner
+            v-if="voting && votingType === 'payment_would_not_pay'"
+            variant="pulse"
+            size="small"
+            :show-text="false"
+          />
+          <i v-else class="fas fa-times-circle"></i>
           <span class="btn-text">Je ne paierais pas</span>
           <span class="vote-count">{{ voteCounts.payment.would_not_pay }}</span>
         </button>
@@ -69,9 +93,13 @@
 <script>
 import { useAuthStore } from '../store'
 import { api } from '../store'
+import LoadingSpinner from './LoadingSpinner.vue'
 
 export default {
   name: 'VotingButtons',
+  components: {
+    LoadingSpinner
+  },
   props: {
     ideaId: {
       type: Number,
@@ -81,6 +109,7 @@ export default {
   data() {
     return {
       voting: false,
+      votingType: null, // Track which specific button is being clicked
       voteCounts: {
         regular: {
           up: 0,
@@ -135,6 +164,7 @@ export default {
 
     async handleRegularVote(voteType) {
       this.voting = true
+      this.votingType = `regular_${voteType}`
       try {
         const response = await api.post('/votes/regular', {
           idea_id: this.ideaId,
@@ -168,11 +198,13 @@ export default {
         }
       } finally {
         this.voting = false
+        this.votingType = null
       }
     },
 
     async handlePaymentVote(voteType) {
       this.voting = true
+      this.votingType = `payment_${voteType}`
       try {
         const response = await api.post('/votes/payment', {
           idea_id: this.ideaId,
@@ -206,6 +238,7 @@ export default {
         }
       } finally {
         this.voting = false
+        this.votingType = null
       }
     }
   }
@@ -258,9 +291,19 @@ export default {
   transition: all 0.3s ease;
 }
 
-.vote-btn:hover {
+.vote-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.vote-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.vote-btn.loading {
+  position: relative;
 }
 
 .vote-btn.vote-up.active {
@@ -296,9 +339,19 @@ export default {
   text-align: left;
 }
 
-.payment-btn:hover {
+.payment-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.payment-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.payment-btn.loading {
+  position: relative;
 }
 
 .payment-btn.would-pay.active {

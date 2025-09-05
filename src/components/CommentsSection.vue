@@ -45,12 +45,17 @@
           <div class="character-count">
             {{ newComment.content.length }}/2000
           </div>
-          <button 
-            class="btn btn-primary" 
-            @click="addComment" 
+          <button
+            class="btn btn-primary"
+            @click="addComment"
             :disabled="!canSubmit || submitting"
           >
-            <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+            <LoadingSpinner
+              v-if="submitting"
+              variant="dots"
+              size="small"
+              :show-text="false"
+            />
             <i v-else class="fas fa-paper-plane"></i>
             {{ submitting ? 'Envoi...' : 'Commenter' }}
           </button>
@@ -60,10 +65,14 @@
 
     <!-- Liste des commentaires -->
     <div class="comments-list">
-      <div v-if="loading" class="loading-state">
-        <i class="fas fa-spinner fa-spin"></i>
-        <p>Chargement des commentaires...</p>
-      </div>
+      <LoadingState
+        v-if="loading"
+        type="inline"
+        size="medium"
+        title="Chargement des commentaires..."
+        description="Veuillez patienter pendant que nous récupérons les commentaires."
+        spinner-variant="wave"
+      />
       
       <div v-else-if="comments.length === 0" class="empty-state">
         <i class="fas fa-comments"></i>
@@ -143,9 +152,15 @@
 <script>
 import { useAuthStore } from '../store'
 import { api } from '../store'
+import LoadingSpinner from './LoadingSpinner.vue'
+import LoadingState from './LoadingState.vue'
 
 export default {
   name: 'CommentsSection',
+  components: {
+    LoadingSpinner,
+    LoadingState
+  },
   props: {
     ideaId: {
       type: Number,
