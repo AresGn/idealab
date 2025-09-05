@@ -308,9 +308,9 @@ export default {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: var(--bg-white);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
   backdrop-filter: blur(10px);
 }
 
@@ -334,33 +334,39 @@ export default {
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
-  color: var(--text-color);
+  color: white;
   font-weight: 700;
   font-size: 1.5rem;
   transition: var(--transition);
 }
 
 .brand-link:hover {
-  color: var(--primary-color);
+  color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
 }
 
 .brand-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 1.2rem;
+  transition: var(--transition);
+}
+
+.brand-link:hover .brand-icon {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .brand-text {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Navigation desktop */
@@ -375,7 +381,7 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  color: var(--text-color);
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   border-radius: var(--border-radius);
   font-weight: 500;
@@ -385,8 +391,9 @@ export default {
 
 .nav-item:hover,
 .nav-item.active {
-  color: var(--primary-color);
-  background: rgba(102, 126, 234, 0.1);
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 /* Dropdown */
@@ -475,8 +482,8 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: var(--transition);
@@ -484,7 +491,8 @@ export default {
 
 .user-trigger:hover,
 .user-trigger.active {
-  background: var(--bg-light);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .user-avatar {
@@ -516,7 +524,7 @@ export default {
 
 .user-name {
   font-weight: 500;
-  color: var(--text-color);
+  color: white;
 }
 
 .user-email {
@@ -571,22 +579,26 @@ export default {
 }
 
 .login-btn {
-  color: var(--text-color);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .login-btn:hover {
-  color: var(--primary-color);
-  background: rgba(102, 126, 234, 0.1);
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .register-btn {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: rgba(255, 255, 255, 0.2);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .register-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Bouton menu mobile */
@@ -606,7 +618,7 @@ export default {
 .hamburger-line {
   width: 24px;
   height: 2px;
-  background: var(--text-color);
+  background: white;
   transition: var(--transition);
   transform-origin: center;
 }
@@ -630,8 +642,8 @@ export default {
   right: 0;
   width: 320px;
   height: calc(100vh - var(--navbar-height));
-  background: var(--bg-white);
-  border-left: 1px solid var(--border-color);
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
   transform: translateX(100%);
   transition: var(--transition);
   overflow-y: auto;
@@ -651,7 +663,7 @@ export default {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  color: var(--text-color);
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   border-radius: var(--border-radius);
   margin-bottom: 0.5rem;
@@ -664,8 +676,8 @@ export default {
 }
 
 .mobile-nav-item:hover {
-  background: var(--bg-light);
-  color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
 }
 
 .mobile-nav-item.sub {
@@ -674,8 +686,9 @@ export default {
 }
 
 .mobile-nav-item.highlight {
-  color: var(--primary-color);
+  color: white;
   font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .mobile-nav-section {
@@ -688,8 +701,8 @@ export default {
   gap: 1rem;
   padding: 1rem;
   font-weight: 600;
-  color: var(--text-color);
-  border-bottom: 1px solid var(--border-color);
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   margin-bottom: 0.5rem;
 }
 
@@ -697,7 +710,7 @@ export default {
 .mobile-auth-section {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .mobile-user-info {
@@ -705,7 +718,7 @@ export default {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: var(--bg-light);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
   margin-bottom: 1rem;
 }
@@ -724,13 +737,14 @@ export default {
 }
 
 .mobile-auth-btn.login {
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .mobile-auth-btn.register {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: rgba(255, 255, 255, 0.2);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .mobile-overlay {

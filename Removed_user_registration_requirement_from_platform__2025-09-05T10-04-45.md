@@ -1,0 +1,5 @@
+[ ] NAME:Current Task List DESCRIPTION:Root task for conversation bdf146c6-0b5b-4417-87e7-f74186c9477d
+-[/] NAME:Corriger l'animation de chargement de la page /all-ideas DESCRIPTION:Remplacer l'ancienne animation de chargement par le nouveau système LoadingState sur la page de toutes les idées.
+-[ ] NAME:Restaurer les couleurs de la navbar DESCRIPTION:Ajouter les couleurs bleues et repositionner correctement tous les éléments de la navbar moderne.
+-[ ] NAME:Corriger le positionnement du bouton 'Connectez-vous' en responsive DESCRIPTION:Fixer le positionnement du bouton de connexion qui n'est pas bien positionné en mode mobile.
+-[ ] NAME:Créer un script de nettoyage de la base de données DESCRIPTION:Script pour supprimer les 2 dernières idées, supprimer les idées avec commentaires, et remettre à 0 les compteurs de vues et likes des 3 idées restantes.
