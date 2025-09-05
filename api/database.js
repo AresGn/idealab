@@ -140,8 +140,22 @@ export const initializeDatabase = async () => {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         idea_id INTEGER REFERENCES ideas(id) ON DELETE CASCADE,
         vote_type VARCHAR(10) NOT NULL CHECK (vote_type IN ('up', 'down')),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, idea_id)
+        session_id VARCHAR(255),
+        ip_address INET,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create payment_votes table
+    await query(`
+      CREATE TABLE IF NOT EXISTS payment_votes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        idea_id INTEGER REFERENCES ideas(id) ON DELETE CASCADE,
+        vote_type VARCHAR(20) NOT NULL CHECK (vote_type IN ('would_pay', 'would_not_pay')),
+        session_id VARCHAR(255),
+        ip_address INET,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
     
@@ -153,6 +167,10 @@ export const initializeDatabase = async () => {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         idea_id INTEGER REFERENCES ideas(id) ON DELETE CASCADE,
         parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+        author_email VARCHAR(255),
+        author_name VARCHAR(255),
+        session_id VARCHAR(255),
+        ip_address INET,
         is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -198,9 +216,38 @@ export const initializeDatabase = async () => {
     await query(`CREATE INDEX IF NOT EXISTS idx_ideas_created_at ON ideas(created_at DESC)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_ideas_development_status ON ideas(development_status)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_ideas_development_progress ON ideas(development_progress)`)
+
+    // Votes indexes
     await query(`CREATE INDEX IF NOT EXISTS idx_votes_idea_id ON votes(idea_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_votes_user_id ON votes(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_votes_session_id ON votes(session_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_votes_ip_address ON votes(ip_address)`)
+
+    // Payment votes indexes
+    await query(`CREATE INDEX IF NOT EXISTS idx_payment_votes_idea_id ON payment_votes(idea_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_payment_votes_user_id ON payment_votes(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_payment_votes_session_id ON payment_votes(session_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_payment_votes_ip_address ON payment_votes(ip_address)`)
+
+    // Comments indexes
     await query(`CREATE INDEX IF NOT EXISTS idx_comments_idea_id ON comments(idea_id)`)
-    
+    await query(`CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_comments_email ON comments(author_email)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_comments_session_id ON comments(session_id)`)
+
+    // Create unique constraints for preventing duplicate votes
+    // For authenticated users
+    await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_user_idea_unique
+                 ON votes(user_id, idea_id) WHERE user_id IS NOT NULL`)
+    await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_votes_user_idea_unique
+                 ON payment_votes(user_id, idea_id) WHERE user_id IS NOT NULL`)
+
+    // For anonymous users (session-based)
+    await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_session_idea_unique
+                 ON votes(session_id, idea_id) WHERE session_id IS NOT NULL AND user_id IS NULL`)
+    await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_votes_session_idea_unique
+                 ON payment_votes(session_id, idea_id) WHERE session_id IS NOT NULL AND user_id IS NULL`)
+
     console.log('✅ Database tables initialized successfully')
     
   } catch (error) {

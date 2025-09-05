@@ -77,13 +77,19 @@
           </div>
         </div>
         <div class="nav-auth" v-else>
+          <div class="anonymous-info">
+            <span class="anonymous-text">
+              <i class="fas fa-info-circle"></i>
+              Vous pouvez voter et commenter sans compte
+            </span>
+          </div>
           <router-link to="/login" class="nav-link">
             <i class="fas fa-sign-in-alt"></i>
             Connexion
           </router-link>
-          <router-link to="/register" class="nav-link btn-primary">
+          <router-link to="/register" class="nav-link btn-secondary">
             <i class="fas fa-user-plus"></i>
-            Inscription
+            Créer un compte
           </router-link>
         </div>
       </div>
@@ -444,6 +450,40 @@ body {
   display: flex;
   gap: 1rem;
   align-items: center;
+}
+
+.anonymous-info {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+}
+
+.anonymous-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #667eea;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: #edf2f7;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.anonymous-text i {
+  color: #667eea;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e0;
+  color: #2d3748;
 }
 
 .main-content {

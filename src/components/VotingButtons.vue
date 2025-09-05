@@ -54,13 +54,13 @@
       </div>
     </div>
 
-    <!-- Message de connexion requis -->
-    <div v-if="!isAuthenticated" class="auth-required">
+    <!-- Message informatif pour les utilisateurs anonymes -->
+    <div v-if="!isAuthenticated" class="anonymous-info">
       <i class="fas fa-info-circle"></i>
-      <span>Connectez-vous pour voter</span>
+      <span>Vous votez en tant qu'utilisateur anonyme</span>
       <router-link to="/login" class="login-link">
         <i class="fas fa-sign-in-alt"></i>
-        Se connecter
+        Se connecter pour plus de fonctionnalités
       </router-link>
     </div>
   </div>
@@ -107,9 +107,7 @@ export default {
   },
   async mounted() {
     await this.loadVoteCounts()
-    if (this.isAuthenticated) {
-      await this.loadUserVotes()
-    }
+    await this.loadUserVotes()
   },
   methods: {
     async loadVoteCounts() {
@@ -122,22 +120,20 @@ export default {
     },
 
     async loadUserVotes() {
-      if (!this.isAuthenticated) return
-      
       try {
         const response = await api.get(`/votes/user/${this.ideaId}`)
         this.userVotes = response.data
       } catch (error) {
         console.error('Erreur lors du chargement des votes utilisateur:', error)
+        // En cas d'erreur, initialiser avec des valeurs par défaut
+        this.userVotes = {
+          regular_vote: null,
+          payment_vote: null
+        }
       }
     },
 
     async handleRegularVote(voteType) {
-      if (!this.isAuthenticated) {
-        this.$router.push('/login')
-        return
-      }
-
       this.voting = true
       try {
         const response = await api.post('/votes/regular', {
@@ -154,7 +150,7 @@ export default {
 
         // Recharger les compteurs
         await this.loadVoteCounts()
-        
+
         this.$emit('vote-updated', {
           type: 'regular',
           action: response.data.action,
@@ -163,8 +159,12 @@ export default {
 
       } catch (error) {
         console.error('Erreur lors du vote:', error)
-        if (error.response?.status === 401) {
-          this.$router.push('/login')
+        if (error.response?.status === 429) {
+          alert('Trop de votes. Veuillez réessayer plus tard.')
+        } else if (error.response?.status === 403) {
+          alert('Votre adresse IP a été bloquée.')
+        } else {
+          alert('Erreur lors du vote. Veuillez réessayer.')
         }
       } finally {
         this.voting = false
@@ -172,11 +172,6 @@ export default {
     },
 
     async handlePaymentVote(voteType) {
-      if (!this.isAuthenticated) {
-        this.$router.push('/login')
-        return
-      }
-
       this.voting = true
       try {
         const response = await api.post('/votes/payment', {
@@ -193,7 +188,7 @@ export default {
 
         // Recharger les compteurs
         await this.loadVoteCounts()
-        
+
         this.$emit('vote-updated', {
           type: 'payment',
           action: response.data.action,
@@ -202,8 +197,12 @@ export default {
 
       } catch (error) {
         console.error('Erreur lors du vote de paiement:', error)
-        if (error.response?.status === 401) {
-          this.$router.push('/login')
+        if (error.response?.status === 429) {
+          alert('Trop de votes. Veuillez réessayer plus tard.')
+        } else if (error.response?.status === 403) {
+          alert('Votre adresse IP a été bloquée.')
+        } else {
+          alert('Erreur lors du vote. Veuillez réessayer.')
         }
       } finally {
         this.voting = false
@@ -326,16 +325,17 @@ export default {
   font-weight: 700;
 }
 
-.auth-required {
+.anonymous-info {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
   border-radius: 12px;
-  color: #856404;
+  color: #1565c0;
   font-weight: 500;
+  font-size: 0.875rem;
 }
 
 .login-link {
