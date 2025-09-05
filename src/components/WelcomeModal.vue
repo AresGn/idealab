@@ -151,6 +151,7 @@ export default {
   padding: 1rem;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease-out;
+  overflow-y: auto;
 }
 
 @keyframes fadeIn {
@@ -429,9 +430,17 @@ export default {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .modal-overlay {
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
   .modal-container {
-    margin: 1rem;
-    max-height: 95vh;
+    margin: 0;
+    max-height: 90vh;
+    width: 100%;
+    max-width: 500px;
   }
 
   .modal-header {
@@ -458,22 +467,34 @@ export default {
   .cta-buttons {
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
   }
 
   .btn {
     width: 100%;
-    max-width: 250px;
+    max-width: 280px;
     justify-content: center;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .modal-overlay {
-    padding: 0.5rem;
+    padding: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .modal-container {
+    max-height: 95vh;
   }
 
   .modal-header {
     padding: 1rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.2rem;
   }
 
   .modal-content {
@@ -486,6 +507,24 @@ export default {
 
   .feature-highlight i {
     font-size: 2rem;
+  }
+
+  .feature-highlight h3 {
+    font-size: 1.1rem;
+  }
+
+  .feature-card h4 {
+    font-size: 1rem;
+  }
+
+  .btn {
+    max-width: 100%;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .cta-text {
+    font-size: 0.95rem;
   }
 }
 </style>

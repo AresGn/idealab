@@ -90,12 +90,14 @@
     </div>
 
     <!-- Chargement -->
-    <div v-if="loading" class="loading-container">
-      <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
-        <p>Chargement des idées...</p>
-      </div>
-    </div>
+    <LoadingState
+      v-if="loading"
+      type="card"
+      size="large"
+      title="Chargement des idées..."
+      description="Nous récupérons toutes les innovations de notre communauté pour vous."
+      spinner-variant="wave"
+    />
 
     <!-- Grille des idées -->
     <div v-else-if="ideas.length > 0" class="ideas-grid">
@@ -202,9 +204,13 @@
 import { useIdeasStore } from '../store'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import LoadingState from '../components/LoadingState.vue'
 
 export default {
   name: 'AllIdeas',
+  components: {
+    LoadingState
+  },
   setup() {
     const ideasStore = useIdeasStore()
     const router = useRouter()
@@ -471,23 +477,7 @@ export default {
   font-weight: 600;
 }
 
-/* Chargement */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 4rem;
-}
-
-.loading-spinner {
-  text-align: center;
-  color: #667eea;
-}
-
-.loading-spinner i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
+/* Chargement - Utilise maintenant LoadingState */
 
 /* Grille des idées */
 .ideas-grid {
