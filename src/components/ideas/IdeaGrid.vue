@@ -29,12 +29,14 @@
     </div>
 
     <!-- État de chargement -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
-      </div>
-      <p>Chargement des idées...</p>
-    </div>
+    <LoadingState
+      v-if="loading"
+      type="card"
+      size="large"
+      title="Chargement des idées..."
+      description="Nous récupérons les dernières innovations pour vous."
+      spinner-variant="spinner"
+    />
 
     <!-- État vide -->
     <div v-else-if="ideas.length === 0" class="empty-state">
@@ -112,11 +114,13 @@
 
 <script>
 import IdeaCard from './IdeaCard.vue'
+import LoadingState from '../LoadingState.vue'
 
 export default {
   name: 'IdeaGrid',
   components: {
-    IdeaCard
+    IdeaCard,
+    LoadingState
   },
   props: {
     ideas: {

@@ -145,6 +145,6 @@ En cas de problème persistant :
 
 ---
 
-**Date de validation** : Décembre 2024  
+**Date de validation** : Décembre 2025 
 **Version testée** : IdéaLab v1.0.0-beta  
 **Navigateurs testés** : Chrome, Firefox, Safari, Edge

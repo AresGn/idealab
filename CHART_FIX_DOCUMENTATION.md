@@ -157,5 +157,5 @@ En cas de problème avec Chart.js :
 ---
 
 **Version des corrections** : 1.0.0  
-**Date** : Décembre 2024  
+**Date** : Décembre 2025 
 **Compatibilité** : Chart.js v4.4.9, Vue.js 3.5.16

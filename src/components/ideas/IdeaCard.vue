@@ -1,5 +1,5 @@
 <template>
-  <div :class="['idea-card', viewMode]" @click="viewIdea">
+  <div :class="['idea-card', viewMode, { loading: navigating }]" @click="viewIdea">
     <!-- Badge de statut -->
     <div v-if="idea.status === 'featured'" class="featured-badge">
       <i class="fas fa-star"></i>
@@ -82,7 +82,7 @@
         </div>
       </div>
       
-      <div class="vote-section" @click.stop>
+      <div class="action-section" @click.stop>
         <button
           @click="voteIdea"
           :class="['vote-btn', { voted: hasVoted }]"
@@ -91,14 +91,31 @@
           <i class="fas fa-thumbs-up"></i>
           {{ hasVoted ? 'Voté' : 'Voter' }}
         </button>
+        <ShareButton :idea="idea" size="small" />
       </div>
+    </div>
+
+    <!-- Overlay de chargement -->
+    <div v-if="navigating" class="loading-overlay">
+      <LoadingSpinner
+        variant="pulse"
+        size="large"
+        :show-text="false"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import ShareButton from '../ShareButton.vue'
+import LoadingSpinner from '../LoadingSpinner.vue'
+
 export default {
   name: 'IdeaCard',
+  components: {
+    ShareButton,
+    LoadingSpinner
+  },
   props: {
     idea: {
       type: Object,
@@ -121,7 +138,8 @@ export default {
   emits: ['view-idea', 'vote-idea', 'bookmark-idea'],
   data() {
     return {
-      voting: false
+      voting: false,
+      navigating: false
     }
   },
   computed: {
@@ -137,8 +155,20 @@ export default {
     }
   },
   methods: {
-    viewIdea() {
-      this.$emit('view-idea', this.idea.id)
+    async viewIdea() {
+      if (this.navigating) return
+
+      this.navigating = true
+      try {
+        // Petit délai pour montrer l'animation
+        await new Promise(resolve => setTimeout(resolve, 200))
+        this.$emit('view-idea', this.idea.id)
+      } finally {
+        // Réinitialiser après navigation
+        setTimeout(() => {
+          this.navigating = false
+        }, 500)
+      }
     },
     
     async voteIdea() {
@@ -442,6 +472,12 @@ export default {
   font-size: 0.75rem;
 }
 
+.action-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .vote-btn {
   padding: 0.5rem 1rem;
   border: 2px solid #667eea;
@@ -508,5 +544,41 @@ export default {
 .vote-btn:focus {
   outline: 2px solid #667eea;
   outline-offset: 2px;
+}
+
+/* Overlay de chargement */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Animation de la carte en état de chargement */
+.idea-card.loading {
+  transform: scale(0.98);
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.2);
+}
+
+.idea-card.loading:hover {
+  transform: scale(0.98);
 }
 </style>

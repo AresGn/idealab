@@ -8,6 +8,7 @@ import {
   isRateLimited,
   detectSuspiciousBehavior
 } from '../utils/anonymousUser.js'
+import { checkVoteRestrictions } from '../utils/voteRestrictions.js'
 
 const router = express.Router()
 
@@ -66,14 +67,55 @@ router.post('/regular', optionalAuth, async (req, res) => {
     let session_id = null
 
     if (user_id) {
-      // Utilisateur connecté
+      // Utilisateur connecté - vérifier s'il a déjà voté
       existingVote = await query(
         'SELECT id, vote_type FROM votes WHERE user_id = $1 AND idea_id = $2',
         [user_id, idea_id]
       )
     } else {
-      // Utilisateur anonyme
+      // Utilisateur anonyme - utiliser le système de restrictions
       session_id = getOrCreateSessionId(req, res)
+
+      // Vérifier les restrictions de vote
+      const voteCheck = await checkVoteRestrictions({
+        sessionId: session_id,
+        ipAddress: ip_address,
+        ideaId: idea_id,
+        query
+      })
+
+      if (!voteCheck.canVote && voteCheck.reason === 'IP_ALREADY_VOTED') {
+        // Vérifier si c'est le même type de vote ou un changement
+        const existingVoteFromIP = await query(
+          'SELECT id, vote_type FROM votes WHERE ip_address = $1 AND idea_id = $2',
+          [ip_address, idea_id]
+        )
+
+        if (existingVoteFromIP.rows.length > 0) {
+          const currentVote = existingVoteFromIP.rows[0]
+
+          if (currentVote.vote_type === vote_type) {
+            // Même vote - ne pas permettre
+            return res.status(400).json({
+              error: 'Vous avez déjà voté pour cette idée',
+              message: 'Un seul vote par personne est autorisé'
+            })
+          } else {
+            // Changement de vote - permettre la mise à jour
+            await query(
+              'UPDATE votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE ip_address = $2 AND idea_id = $3',
+              [vote_type, ip_address, idea_id]
+            )
+
+            return res.json({
+              message: 'Vote modifié avec succès',
+              action: 'updated',
+              vote_type: vote_type
+            })
+          }
+        }
+      }
+
       existingVote = await query(
         'SELECT id, vote_type FROM votes WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL',
         [session_id, idea_id]
