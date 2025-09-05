@@ -147,6 +147,7 @@ import { useAuthStore, useIdeasStore, useStatsStore } from '@/store'
 import ProfileHeader from '../components/profile/ProfileHeader.vue'
 import ProfileStats from '../components/profile/ProfileStats.vue'
 import UserIdeasList from '../components/profile/UserIdeasList.vue'
+import { showSuccess } from '../components/AlertSystem.vue'
 
 export default {
   name: 'Profile',
@@ -310,7 +311,7 @@ export default {
         })
       } else {
         navigator.clipboard.writeText(window.location.href)
-        alert('Lien copié dans le presse-papiers')
+        showSuccess('Lien copié dans le presse-papiers', 'Partage')
       }
     }
     

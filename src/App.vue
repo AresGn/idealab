@@ -12,6 +12,9 @@
 
     <!-- Modal de bienvenue -->
     <WelcomeModal />
+
+    <!-- Système d'alertes -->
+    <AlertSystem />
   </div>
 </template>
 
@@ -19,12 +22,14 @@
 import { useAuthStore } from './store'
 import WelcomeModal from './components/WelcomeModal.vue'
 import ModernNavbar from './components/ModernNavbar.vue'
+import AlertSystem from './components/AlertSystem.vue'
 
 export default {
   name: 'App',
   components: {
     WelcomeModal,
-    ModernNavbar
+    ModernNavbar,
+    AlertSystem
   },
   setup() {
     const authStore = useAuthStore()

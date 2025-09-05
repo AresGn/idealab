@@ -112,6 +112,7 @@
 
 <script>
 import { useIdeasStore, useAuthStore } from '../store'
+import { showError, showSuccess } from '../components/AlertSystem.vue'
 
 export default {
   name: 'SubmitIdea',
@@ -156,7 +157,10 @@ export default {
         })
 
         if (result.success) {
-          alert('🎉 Votre idée a été publiée avec succès et est maintenant visible par tous !')
+          this.showSuccess(
+            'Votre idée a été publiée avec succès et est maintenant visible par tous !',
+            'Idée publiée'
+          )
           this.resetForm()
           this.$router.push({
             path: '/dashboard',
@@ -166,12 +170,12 @@ export default {
             }
           })
         } else {
-          alert('❌ ' + (result.error || 'Une erreur est survenue'))
+          this.showError(result.error || 'Une erreur est survenue lors de la publication')
         }
 
       } catch (error) {
         console.error('Erreur lors de la soumission:', error)
-        alert('❌ Une erreur est survenue. Veuillez réessayer.')
+        this.showError('Une erreur est survenue. Veuillez réessayer.', 'Erreur de connexion')
       } finally {
         this.isSubmitting = false
       }
@@ -186,6 +190,15 @@ export default {
         willingness: '',
         budget: ''
       }
+    },
+
+    // Méthodes d'alerte
+    showError(message, title = 'Erreur') {
+      showError(message, title)
+    },
+
+    showSuccess(message, title = 'Succès') {
+      showSuccess(message, title)
     }
   }
 }
