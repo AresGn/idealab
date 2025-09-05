@@ -12,6 +12,43 @@ import { checkVoteRestrictions } from '../utils/voteRestrictions.js'
 
 const router = express.Router()
 
+// Fonction utilitaire pour mettre à jour les compteurs de votes d'une idée
+async function updateIdeaVoteCounts(ideaId) {
+  try {
+    // Compter les votes up et down
+    const voteCountsQuery = `
+      SELECT
+        vote_type,
+        COUNT(*) as count
+      FROM votes
+      WHERE idea_id = $1
+      GROUP BY vote_type
+    `
+    const voteCounts = await query(voteCountsQuery, [ideaId])
+
+    let upVotes = 0
+    let downVotes = 0
+
+    voteCounts.rows.forEach(row => {
+      if (row.vote_type === 'up') upVotes = parseInt(row.count)
+      if (row.vote_type === 'down') downVotes = parseInt(row.count)
+    })
+
+    const totalVotes = upVotes + downVotes
+
+    // Mettre à jour l'idée
+    await query(
+      'UPDATE ideas SET votes_count = $1 WHERE id = $2',
+      [totalVotes, ideaId]
+    )
+
+    return { upVotes, downVotes, totalVotes }
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des compteurs de votes:', error)
+    throw error
+  }
+}
+
 // POST /api/votes/regular - Vote standard (up/down) pour une idée
 router.post('/regular', optionalAuth, async (req, res) => {
   try {
@@ -84,35 +121,39 @@ router.post('/regular', optionalAuth, async (req, res) => {
         query
       })
 
-      if (!voteCheck.canVote && voteCheck.reason === 'IP_ALREADY_VOTED') {
-        // Vérifier si c'est le même type de vote ou un changement
-        const existingVoteFromIP = await query(
-          'SELECT id, vote_type FROM votes WHERE ip_address = $1 AND idea_id = $2',
-          [ip_address, idea_id]
-        )
+      // Vérification stricte par IP - une seule fois par idée
+      const existingVoteFromIP = await query(
+        'SELECT id, vote_type, created_at FROM votes WHERE ip_address = $1 AND idea_id = $2',
+        [ip_address, idea_id]
+      )
 
-        if (existingVoteFromIP.rows.length > 0) {
-          const currentVote = existingVoteFromIP.rows[0]
+      if (existingVoteFromIP.rows.length > 0) {
+        const currentVote = existingVoteFromIP.rows[0]
 
-          if (currentVote.vote_type === vote_type) {
-            // Même vote - ne pas permettre
-            return res.status(400).json({
-              error: 'Vous avez déjà voté pour cette idée',
-              message: 'Un seul vote par personne est autorisé'
-            })
-          } else {
-            // Changement de vote - permettre la mise à jour
-            await query(
-              'UPDATE votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE ip_address = $2 AND idea_id = $3',
-              [vote_type, ip_address, idea_id]
-            )
+        if (currentVote.vote_type === vote_type) {
+          // Même vote - refuser avec message clair
+          return res.status(400).json({
+            error: 'Vote déjà enregistré',
+            message: 'Vous avez déjà voté pour cette idée avec cette adresse IP. Un seul vote par adresse IP est autorisé.',
+            code: 'ALREADY_VOTED_SAME_TYPE',
+            vote_type: vote_type
+          })
+        } else {
+          // Changement de vote - permettre la mise à jour
+          await query(
+            'UPDATE votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE ip_address = $2 AND idea_id = $3',
+            [vote_type, ip_address, idea_id]
+          )
 
-            return res.json({
-              message: 'Vote modifié avec succès',
-              action: 'updated',
-              vote_type: vote_type
-            })
-          }
+          // Mettre à jour les compteurs de l'idée
+          await updateIdeaVoteCounts(idea_id)
+
+          return res.json({
+            message: 'Vote modifié avec succès',
+            action: 'updated',
+            vote_type: vote_type,
+            previous_vote: currentVote.vote_type
+          })
         }
       }
 
@@ -237,8 +278,42 @@ router.post('/payment', optionalAuth, async (req, res) => {
         [user_id, idea_id]
       )
     } else {
-      // Utilisateur anonyme
+      // Utilisateur anonyme - vérification stricte par IP
       session_id = getOrCreateSessionId(req, res)
+
+      // Vérifier si cette IP a déjà voté pour cette idée (votes de paiement)
+      const existingPaymentVoteFromIP = await query(
+        'SELECT id, vote_type, created_at FROM payment_votes WHERE ip_address = $1 AND idea_id = $2',
+        [ip_address, idea_id]
+      )
+
+      if (existingPaymentVoteFromIP.rows.length > 0) {
+        const currentVote = existingPaymentVoteFromIP.rows[0]
+
+        if (currentVote.vote_type === vote_type) {
+          // Même vote - refuser avec message clair
+          return res.status(400).json({
+            error: 'Vote de paiement déjà enregistré',
+            message: 'Vous avez déjà exprimé votre intention de paiement pour cette idée avec cette adresse IP.',
+            code: 'ALREADY_VOTED_PAYMENT_SAME_TYPE',
+            vote_type: vote_type
+          })
+        } else {
+          // Changement de vote - permettre la mise à jour
+          await query(
+            'UPDATE payment_votes SET vote_type = $1, created_at = CURRENT_TIMESTAMP WHERE ip_address = $2 AND idea_id = $3',
+            [vote_type, ip_address, idea_id]
+          )
+
+          return res.json({
+            message: 'Vote de paiement modifié avec succès',
+            action: 'updated',
+            vote_type: vote_type,
+            previous_vote: currentVote.vote_type
+          })
+        }
+      }
+
       existingVote = await query(
         'SELECT id, vote_type FROM payment_votes WHERE session_id = $1 AND idea_id = $2 AND user_id IS NULL',
         [session_id, idea_id]

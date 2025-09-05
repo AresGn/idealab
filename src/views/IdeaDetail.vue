@@ -237,6 +237,7 @@ import VotingButtons from '../components/VotingButtons.vue'
 import CommentsSection from '../components/CommentsSection.vue'
 import LoadingState from '../components/LoadingState.vue'
 import { useIdeasStore } from '@/store'
+import { showSuccess } from '../components/AlertSystem.vue'
 
 export default {
   name: 'IdeaDetail',
@@ -359,7 +360,7 @@ export default {
       } else {
         // Fallback: copier l'URL
         navigator.clipboard.writeText(window.location.href)
-        alert('Lien copié dans le presse-papiers!')
+        this.showSuccess('Lien copié dans le presse-papiers!', 'Partage')
       }
     },
 
@@ -368,6 +369,11 @@ export default {
       if (this.idea) {
         this.idea.comments_count = (this.idea.comments_count || 0) + 1
       }
+    },
+
+    // Méthodes d'alerte
+    showSuccess(message, title = 'Succès') {
+      showSuccess(message, title)
     }
   },
 

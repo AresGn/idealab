@@ -18,15 +18,36 @@ export const authenticateToken = async (req, res, next) => {
 
     // Vérifier que l'utilisateur existe toujours et est actif
     const userQuery = `
-      SELECT id, email, username, role, is_active
-      FROM users 
+      SELECT id, email, username, role, is_active, last_login
+      FROM users
       WHERE id = $1
     `
     const result = await query(userQuery, [decoded.userId])
 
-    if (result.rows.length === 0 || !result.rows[0].is_active) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
-        error: 'Token invalide ou utilisateur inactif'
+        error: 'Utilisateur non trouvé',
+        code: 'USER_NOT_FOUND'
+      })
+    }
+
+    const user = result.rows[0]
+
+    if (!user.is_active) {
+      return res.status(401).json({
+        error: 'Compte utilisateur désactivé',
+        code: 'USER_INACTIVE'
+      })
+    }
+
+    // Vérifier si le token n'est pas trop ancien (sécurité supplémentaire)
+    const tokenAge = Date.now() - (decoded.iat * 1000)
+    const maxTokenAge = 7 * 24 * 60 * 60 * 1000 // 7 jours
+
+    if (tokenAge > maxTokenAge) {
+      return res.status(401).json({
+        error: 'Session expirée, veuillez vous reconnecter',
+        code: 'SESSION_EXPIRED'
       })
     }
 
@@ -35,7 +56,8 @@ export const authenticateToken = async (req, res, next) => {
       id: decoded.userId,
       email: decoded.email,
       username: decoded.username,
-      role: decoded.role || result.rows[0].role
+      role: decoded.role || user.role,
+      last_login: user.last_login
     }
 
     next()

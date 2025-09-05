@@ -154,6 +154,7 @@ import { useAuthStore } from '../store'
 import { api } from '../store'
 import LoadingSpinner from './LoadingSpinner.vue'
 import LoadingState from './LoadingState.vue'
+import { showError, showWarning, showSuccess } from './AlertSystem.vue'
 
 export default {
   name: 'CommentsSection',
@@ -293,11 +294,11 @@ export default {
       } catch (error) {
         console.error('Erreur lors de l\'ajout du commentaire:', error)
         if (error.response?.status === 429) {
-          alert('Trop de commentaires. Veuillez réessayer plus tard.')
+          this.showWarning('Trop de commentaires. Veuillez réessayer plus tard.', 'Limite atteinte')
         } else if (error.response?.status === 403) {
-          alert('Votre adresse IP a été bloquée.')
+          this.showError('Votre adresse IP a été bloquée.', 'Accès refusé')
         } else {
-          alert('Erreur lors de l\'ajout du commentaire. Veuillez réessayer.')
+          this.showError('Erreur lors de l\'ajout du commentaire. Veuillez réessayer.', 'Erreur de connexion')
         }
       } finally {
         this.submitting = false
@@ -330,7 +331,7 @@ export default {
         await this.loadComments(this.pagination.page)
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)
-        alert('Erreur lors de la suppression du commentaire.')
+        this.showError('Erreur lors de la suppression du commentaire.', 'Erreur de suppression')
       }
     },
 
@@ -348,6 +349,19 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+
+    // Méthodes d'alerte
+    showError(message, title = 'Erreur') {
+      showError(message, title)
+    },
+
+    showWarning(message, title = 'Attention') {
+      showWarning(message, title)
+    },
+
+    showSuccess(message, title = 'Succès') {
+      showSuccess(message, title)
     }
   }
 }

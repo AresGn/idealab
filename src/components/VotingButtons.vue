@@ -94,6 +94,7 @@
 import { useAuthStore } from '../store'
 import { api } from '../store'
 import LoadingSpinner from './LoadingSpinner.vue'
+import { showError, showWarning, showSuccess } from './AlertSystem.vue'
 
 export default {
   name: 'VotingButtons',
@@ -187,14 +188,32 @@ export default {
           vote_type: response.data.vote_type
         })
 
+        // Afficher un message de succès
+        if (response.data.action === 'updated') {
+          this.showSuccess(`Vote modifié vers "${response.data.vote_type === 'up' ? 'J\'aime' : 'Je n\'aime pas'}"`, 'Vote mis à jour')
+        } else if (response.data.action === 'created') {
+          this.showSuccess(`Vote "${response.data.vote_type === 'up' ? 'J\'aime' : 'Je n\'aime pas'}" enregistré`, 'Vote enregistré')
+        }
+
       } catch (error) {
         console.error('Erreur lors du vote:', error)
-        if (error.response?.status === 429) {
-          alert('Trop de votes. Veuillez réessayer plus tard.')
+
+        if (error.response?.status === 400) {
+          const errorData = error.response.data
+          if (errorData.code === 'ALREADY_VOTED_SAME_TYPE') {
+            this.showError(
+              'Vous avez déjà voté pour cette idée avec cette adresse IP. Un seul vote par adresse IP est autorisé.',
+              'Vote déjà enregistré'
+            )
+          } else {
+            this.showError(errorData.message || 'Erreur lors du vote')
+          }
+        } else if (error.response?.status === 429) {
+          this.showWarning('Trop de votes. Veuillez réessayer plus tard.', 'Limite atteinte')
         } else if (error.response?.status === 403) {
-          alert('Votre adresse IP a été bloquée.')
+          this.showError('Votre adresse IP a été bloquée.', 'Accès refusé')
         } else {
-          alert('Erreur lors du vote. Veuillez réessayer.')
+          this.showError('Erreur lors du vote. Veuillez réessayer.', 'Erreur de connexion')
         }
       } finally {
         this.voting = false
@@ -229,17 +248,41 @@ export default {
 
       } catch (error) {
         console.error('Erreur lors du vote de paiement:', error)
-        if (error.response?.status === 429) {
-          alert('Trop de votes. Veuillez réessayer plus tard.')
+
+        if (error.response?.status === 400) {
+          const errorData = error.response.data
+          if (errorData.code === 'ALREADY_VOTED_PAYMENT_SAME_TYPE') {
+            this.showError(
+              'Vous avez déjà exprimé votre intention de paiement pour cette idée avec cette adresse IP.',
+              'Vote de paiement déjà enregistré'
+            )
+          } else {
+            this.showError(errorData.message || 'Erreur lors du vote de paiement')
+          }
+        } else if (error.response?.status === 429) {
+          this.showWarning('Trop de votes. Veuillez réessayer plus tard.', 'Limite atteinte')
         } else if (error.response?.status === 403) {
-          alert('Votre adresse IP a été bloquée.')
+          this.showError('Votre adresse IP a été bloquée.', 'Accès refusé')
         } else {
-          alert('Erreur lors du vote. Veuillez réessayer.')
+          this.showError('Erreur lors du vote de paiement. Veuillez réessayer.', 'Erreur de connexion')
         }
       } finally {
         this.voting = false
         this.votingType = null
       }
+    },
+
+    // Méthodes d'alerte
+    showError(message, title = 'Erreur') {
+      showError(message, title)
+    },
+
+    showWarning(message, title = 'Attention') {
+      showWarning(message, title)
+    },
+
+    showSuccess(message, title = 'Succès') {
+      showSuccess(message, title)
     }
   }
 }
