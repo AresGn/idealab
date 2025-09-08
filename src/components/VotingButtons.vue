@@ -84,7 +84,8 @@
       <span>Vous votez en tant qu'utilisateur anonyme</span>
       <router-link to="/login" class="login-link">
         <i class="fas fa-sign-in-alt"></i>
-        Se connecter pour plus de fonctionnalités
+        <span class="login-text-full">Se connecter pour plus de fonctionnalités</span>
+        <span class="login-text-short">Se connecter</span>
       </router-link>
     </div>
   </div>
@@ -437,32 +438,95 @@ export default {
 .login-link {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   background: #667eea;
   color: white;
   text-decoration: none;
   border-radius: 8px;
   font-weight: 600;
   transition: all 0.3s ease;
+  min-height: 44px;
+  min-width: 44px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .login-link:hover {
   background: #5a67d8;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.login-text-short {
+  display: none;
+}
+
+.login-text-full {
+  display: inline;
 }
 
 @media (max-width: 768px) {
   .voting-container {
     padding: 1.5rem;
   }
-  
+
   .vote-buttons {
     flex-direction: column;
+    gap: 0.75rem;
   }
-  
+
   .payment-btn {
     padding: 0.75rem 1rem;
+    min-height: 44px;
+  }
+
+  .anonymous-info {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .login-link {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .voting-container {
+    padding: 1rem;
+  }
+
+  .vote-btn,
+  .payment-btn {
+    min-height: 48px;
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .login-link {
+    min-height: 48px;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  .login-text-full {
+    display: none;
+  }
+
+  .login-text-short {
+    display: inline;
+  }
+
+  .anonymous-info {
+    padding: 1rem;
+    border-radius: 12px;
   }
 }
 </style>

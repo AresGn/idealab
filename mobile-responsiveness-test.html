@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Réactivité Mobile - IdéaLab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .test-container {
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        .test-section {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-title {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .viewport-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 9999;
+        }
+
+        /* Test de la navbar */
+        .navbar-test {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .nav-items {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .auth-btn {
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        /* Test du bouton de connexion */
+        .login-button-test {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Test de la modal */
+        .modal-test {
+            position: relative;
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .modal-content {
+            padding: 2rem;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 768px) {
+            .nav-items {
+                display: none;
+            }
+            
+            .auth-section {
+                display: none;
+            }
+            
+            .navbar-container {
+                padding: 0 1rem;
+            }
+            
+            .modal-test {
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            .modal-header {
+                padding: 1rem 1.5rem;
+            }
+            
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-container {
+                padding: 0 0.75rem;
+            }
+            
+            .brand {
+                font-size: 1.3rem;
+            }
+            
+            .modal-header {
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                padding: 1rem;
+            }
+        }
+
+        /* Test de défilement horizontal */
+        .overflow-test {
+            border: 2px solid #e53e3e;
+            background: rgba(229, 62, 62, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .overflow-indicator {
+            width: 100vw;
+            height: 20px;
+            background: linear-gradient(90deg, #48bb78 0%, #e53e3e 100%);
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .touch-target-test {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .touch-target.small {
+            min-height: 32px;
+            min-width: 32px;
+            background: #e53e3e;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-good { background: #48bb78; }
+        .status-warning { background: #ed8936; }
+        .status-error { background: #e53e3e; }
+    </style>
+</head>
+<body>
+    <div class="viewport-indicator" id="viewportIndicator">
+        Largeur: <span id="width"></span>px
+    </div>
+
+    <div class="test-container">
+        <h1>🧪 Test de Réactivité Mobile - IdéaLab</h1>
+        
+        <div class="test-section">
+            <h2 class="test-title">
+                <span class="status-indicator status-error"></span>
+                Test de la Navbar (Problème de défilement horizontal)
+            </h2>
+            <div class="navbar-test">
+                <div class="navbar-container">
+                    <div class="brand">
+                        <i>💡</i>
+                        <span>IdéaLab</span>
+                    </div>
+                    <div class="nav-items">
+                        <a href="#" class="nav-item">Accueil</a>
+                        <a href="#" class="nav-item">Idées</a>
+                        <a href="#" class="nav-item">Tableau de bord</a>
+                    </div>
+                    <div class="auth-section">
+                        <a href="#" class="auth-btn">Connexion</a>
+                        <a href="#" class="auth-btn">S'inscrire</a>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-test">
+                <strong>Test de défilement horizontal :</strong>
+                <div class="overflow-indicator"></div>
+                <p>Si vous voyez du rouge, il y a un défilement horizontal.</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">
+                <span class="status-indicator status-warning"></span>
+                Test du Bouton de Connexion (Cible tactile)
+            </h2>
+            <p>Bouton "Se connecter pour plus de fonctionnalités" :</p>
+            <a href="#" class="login-button-test">
+                <i>🔐</i>
+                Se connecter pour plus de fonctionnalités
+            </a>
+            <p><small>Taille minimale recommandée : 44px × 44px</small></p>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">
+                <span class="status-indicator status-warning"></span>
+                Test de la Modal de Bienvenue
+            </h2>
+            <div class="modal-test">
+                <div class="modal-header">
+                    <h3>Bienvenue sur IdéaLab !</h3>
+                </div>
+                <div class="modal-content">
+                    <p>Cette modal doit être entièrement responsive et s'adapter à toutes les tailles d'écran.</p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                        <button style="flex: 1; min-width: 120px; padding: 0.75rem;">Commencer</button>
+                        <button style="flex: 1; min-width: 120px; padding: 0.75rem;">Plus tard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">
+                <span class="status-indicator status-good"></span>
+                Test des Cibles Tactiles
+            </h2>
+            <p>Boutons avec taille appropriée (44px min) :</p>
+            <div class="touch-target-test">
+                <button class="touch-target">✓ OK</button>
+                <button class="touch-target">✓ OK</button>
+                <button class="touch-target">✓ OK</button>
+            </div>
+            <p>Boutons trop petits (32px) :</p>
+            <div class="touch-target-test">
+                <button class="touch-target small">✗ Petit</button>
+                <button class="touch-target small">✗ Petit</button>
+                <button class="touch-target small">✗ Petit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateViewportIndicator() {
+            const width = window.innerWidth;
+            document.getElementById('width').textContent = width;
+            
+            // Détecter les problèmes potentiels
+            const body = document.body;
+            const hasHorizontalScroll = body.scrollWidth > body.clientWidth;
+            
+            if (hasHorizontalScroll) {
+                document.querySelector('.viewport-indicator').style.background = '#e53e3e';
+                console.warn('Défilement horizontal détecté!', {
+                    scrollWidth: body.scrollWidth,
+                    clientWidth: body.clientWidth
+                });
+            } else {
+                document.querySelector('.viewport-indicator').style.background = '#667eea';
+            }
+        }
+
+        window.addEventListener('resize', updateViewportIndicator);
+        updateViewportIndicator();
+
+        // Test de détection de défilement horizontal
+        function checkHorizontalOverflow() {
+            const elements = document.querySelectorAll('*');
+            elements.forEach(el => {
+                if (el.scrollWidth > el.clientWidth) {
+                    console.warn('Élément avec défilement horizontal:', el);
+                }
+            });
+        }
+
+        setTimeout(checkHorizontalOverflow, 1000);
+    </script>
+</body>
+</html>

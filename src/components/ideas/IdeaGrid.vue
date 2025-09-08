@@ -225,8 +225,8 @@ export default {
 }
 
 .view-btn {
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border: 2px solid #e2e8f0;
   background: white;
   border-radius: 8px;
@@ -311,8 +311,8 @@ export default {
 }
 
 .page-btn {
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border: 2px solid #e2e8f0;
   background: white;
   border-radius: 8px;
@@ -413,13 +413,40 @@ export default {
 }
 
 @media (max-width: 480px) {
+  .idea-grid {
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .grid-header {
+    margin-bottom: 1.5rem;
+  }
+
   .results-info h3 {
     font-size: 1.25rem;
   }
-  
+
   .view-options {
     width: 100%;
     justify-content: center;
+  }
+
+  .view-btn,
+  .page-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .ideas-container.grid {
+    gap: 1rem;
+  }
+
+  .pagination {
+    gap: 0.75rem;
+  }
+
+  .page-numbers {
+    gap: 0.5rem;
   }
 }
 

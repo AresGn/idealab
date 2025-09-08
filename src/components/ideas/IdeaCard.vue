@@ -326,8 +326,8 @@ export default {
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   border-radius: 8px;
   background: #f7fafc;
@@ -521,21 +521,66 @@ export default {
   .idea-card.list {
     flex-direction: column;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .card-actions {
     align-self: flex-end;
   }
-  
+
   .card-footer {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+
+  .action-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .vote-btn {
+    min-height: 48px;
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .idea-card {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .card-header {
+    gap: 0.75rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+
+  .card-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .author-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .action-section {
+    gap: 0.75rem;
   }
 }
 

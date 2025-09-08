@@ -108,6 +108,12 @@ const routes = [
     component: () => import('../views/ForgotPassword.vue'),
     meta: { requiresAuth: false }
   },
+  {
+    path: '/test-navbar',
+    name: 'TestNavbar',
+    component: () => import('../components/NavbarTestDebug.vue'),
+    meta: { requiresAuth: false }
+  },
 
   {
     path: '/:catchAll(.*)',

@@ -52,12 +52,22 @@ export default {
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f5f5f5;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+body.mobile-menu-open {
+  overflow-y: hidden;
 }
 
 #app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Styles de base pour l'application */

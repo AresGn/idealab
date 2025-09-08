@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Menu Mobile - Corrections</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+
+        /* Variables CSS */
+        :root {
+            --navbar-height: 70px;
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --transition: all 0.3s ease;
+        }
+
+        /* Navbar principale */
+        .modern-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            width: 100%;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            height: var(--navbar-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /* Brand */
+        .navbar-brand {
+            flex-shrink: 0;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Navigation desktop */
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: var(--transition);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Dropdown */
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 220px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #2d3748;
+            text-decoration: none;
+            transition: var(--transition);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: var(--primary-color);
+        }
+
+        /* Actions utilisateur */
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Bouton menu mobile */
+        .mobile-menu-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 0;
+            gap: 4px;
+            transition: var(--transition);
+            position: relative;
+            z-index: 1001;
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .hamburger-line {
+            width: 24px;
+            height: 2px;
+            background: white;
+            transition: var(--transition);
+            transform-origin: center;
+        }
+
+        .mobile-menu-btn.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .mobile-menu-btn.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-btn.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Menu mobile */
+        .mobile-menu {
+            position: fixed;
+            top: var(--navbar-height);
+            right: 0;
+            width: 320px;
+            height: calc(100vh - var(--navbar-height));
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateX(100%);
+            transition: var(--transition);
+            overflow-y: auto;
+            z-index: 9999;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-content {
+            padding: 1rem;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .mobile-nav-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .mobile-overlay {
+            position: fixed;
+            top: var(--navbar-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        /* Responsive */
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .desktop-nav {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+
+            .brand-text {
+                display: none;
+            }
+
+            .navbar-container {
+                padding: 0 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-menu {
+                width: 100%;
+            }
+
+            .navbar-container {
+                padding: 0 0.75rem;
+            }
+
+            .brand-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+
+            .mobile-menu-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .hamburger-line {
+                width: 20px;
+            }
+        }
+
+        /* Test styles */
+        .test-content {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .test-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+
+        .debug-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            font-size: 0.9rem;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="modern-navbar">
+        <div class="navbar-container">
+            <!-- Logo et titre -->
+            <div class="navbar-brand">
+                <a href="#" class="brand-link">
+                    <div class="brand-icon">
+                        <i class="fas fa-lightbulb">💡</i>
+                    </div>
+                    <span class="brand-text">IdéaLab</span>
+                </a>
+            </div>
+
+            <!-- Navigation principale (desktop) -->
+            <div class="navbar-nav desktop-nav">
+                <a href="#" class="nav-item">
+                    🏠 <span>Accueil</span>
+                </a>
+
+                <!-- Dropdown Idées -->
+                <div class="nav-dropdown">
+                    <button class="nav-item dropdown-trigger" onclick="toggleIdeasDropdown()">
+                        💡 <span>Idées</span>
+                        <span>▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="ideasDropdown">
+                        <a href="#" class="dropdown-item">
+                            📋 <span>Toutes les idées</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            ⚙️ <span>En développement</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            ➕ <span>Soumettre une idée</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="#" class="nav-item">
+                    📊 <span>Tableau de bord</span>
+                </a>
+            </div>
+
+            <!-- Actions utilisateur -->
+            <div class="navbar-actions">
+                <!-- Bouton menu mobile -->
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu mobile -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-content">
+                <a href="#" class="mobile-nav-item">
+                    🏠 <span>Accueil</span>
+                </a>
+                <a href="#" class="mobile-nav-item">
+                    💡 <span>Toutes les idées</span>
+                </a>
+                <a href="#" class="mobile-nav-item">
+                    ⚙️ <span>En développement</span>
+                </a>
+                <a href="#" class="mobile-nav-item">
+                    ➕ <span>Soumettre une idée</span>
+                </a>
+                <a href="#" class="mobile-nav-item">
+                    📊 <span>Tableau de bord</span>
+                </a>
+                <a href="#" class="mobile-nav-item">
+                    👤 <span>Connexion</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Overlay pour fermer le menu mobile -->
+        <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()" style="display: none;"></div>
+    </nav>
+
+    <div class="test-content">
+        <h1>🧪 Test des Corrections Menu Mobile</h1>
+        <p>Testez le menu hamburger et le dropdown "Idées" :</p>
+        
+        <div style="margin: 2rem 0;">
+            <button class="test-btn" onclick="toggleMobileMenu()">📱 Toggle Menu Mobile</button>
+            <button class="test-btn" onclick="toggleIdeasDropdown()">💡 Toggle Dropdown Idées</button>
+            <button class="test-btn" onclick="debugAll()">🔍 Debug Complet</button>
+        </div>
+
+        <div id="debugOutput" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: monospace; white-space: pre-wrap;"></div>
+    </div>
+
+    <div class="debug-info" id="debugInfo">
+        <strong>🔍 Debug Info:</strong><br>
+        Menu mobile: <span id="mobileStatus">fermé</span><br>
+        Dropdown idées: <span id="ideasStatus">fermé</span><br>
+        Largeur écran: <span id="screenWidth">-</span>px<br>
+        Breakpoint: <span id="breakpoint">-</span>
+    </div>
+
+    <script>
+        let mobileMenuOpen = false;
+        let ideasDropdownOpen = false;
+
+        function toggleMobileMenu() {
+            console.log('🔄 Toggle menu mobile appelé');
+            mobileMenuOpen = !mobileMenuOpen;
+            updateMobileMenu();
+        }
+
+        function closeMobileMenu() {
+            console.log('❌ Fermeture menu mobile');
+            mobileMenuOpen = false;
+            updateMobileMenu();
+        }
+
+        function updateMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileOverlay');
+            const btn = document.getElementById('mobileMenuBtn');
+            
+            if (mobileMenuOpen) {
+                menu.classList.add('open');
+                overlay.style.display = 'block';
+                btn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                menu.classList.remove('open');
+                overlay.style.display = 'none';
+                btn.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            updateDebugInfo();
+        }
+
+        function toggleIdeasDropdown() {
+            console.log('🔄 Toggle dropdown idées appelé');
+            ideasDropdownOpen = !ideasDropdownOpen;
+            updateIdeasDropdown();
+        }
+
+        function updateIdeasDropdown() {
+            const dropdown = document.getElementById('ideasDropdown');
+            
+            if (ideasDropdownOpen) {
+                dropdown.classList.add('show');
+            } else {
+                dropdown.classList.remove('show');
+            }
+            
+            updateDebugInfo();
+        }
+
+        function updateDebugInfo() {
+            document.getElementById('mobileStatus').textContent = mobileMenuOpen ? 'ouvert' : 'fermé';
+            document.getElementById('ideasStatus').textContent = ideasDropdownOpen ? 'ouvert' : 'fermé';
+            document.getElementById('screenWidth').textContent = window.innerWidth;
+            
+            const width = window.innerWidth;
+            let breakpoint = 'Desktop (≥769px)';
+            if (width <= 480) breakpoint = 'Mobile (≤480px)';
+            else if (width <= 768) breakpoint = 'Tablette (≤768px)';
+            
+            document.getElementById('breakpoint').textContent = breakpoint;
+        }
+
+        function debugAll() {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.getElementById('mobileMenuBtn');
+            const dropdown = document.getElementById('ideasDropdown');
+            
+            const menuRect = menu.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+            
+            let output = '🔍 DEBUG COMPLET:\n\n';
+            output += '📱 MENU MOBILE:\n';
+            output += `État: ${mobileMenuOpen ? 'ouvert' : 'fermé'}\n`;
+            output += `Position: left=${menuRect.left}px, right=${menuRect.right}px\n`;
+            output += `Taille: ${menuRect.width}px × ${menuRect.height}px\n`;
+            output += `Transform: ${window.getComputedStyle(menu).transform}\n`;
+            output += `Z-index: ${window.getComputedStyle(menu).zIndex}\n\n`;
+            
+            output += '🍔 BOUTON HAMBURGER:\n';
+            output += `Visible: ${window.getComputedStyle(btn).display !== 'none'}\n`;
+            output += `Position: left=${btnRect.left}px, top=${btnRect.top}px\n`;
+            output += `Taille: ${btnRect.width}px × ${btnRect.height}px\n\n`;
+            
+            output += '💡 DROPDOWN IDÉES:\n';
+            output += `État: ${ideasDropdownOpen ? 'ouvert' : 'fermé'}\n`;
+            output += `Visible: ${window.getComputedStyle(dropdown).visibility}\n`;
+            output += `Opacity: ${window.getComputedStyle(dropdown).opacity}\n\n`;
+            
+            output += '📊 ÉCRAN:\n';
+            output += `Largeur: ${window.innerWidth}px\n`;
+            output += `Hauteur: ${window.innerHeight}px\n`;
+            
+            document.getElementById('debugOutput').textContent = output;
+            console.log(output);
+        }
+
+        // Fermer les menus en cliquant ailleurs
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-dropdown') && ideasDropdownOpen) {
+                ideasDropdownOpen = false;
+                updateIdeasDropdown();
+            }
+        });
+
+        // Initialiser
+        updateDebugInfo();
+        
+        // Mettre à jour les infos lors du redimensionnement
+        window.addEventListener('resize', updateDebugInfo);
+        
+        // Test automatique
+        setTimeout(() => {
+            console.log('🚀 Test automatique...');
+            debugAll();
+        }, 1000);
+    </script>
+</body>
+</html>
