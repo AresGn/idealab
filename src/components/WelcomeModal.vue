@@ -170,8 +170,10 @@ export default {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  word-wrap: break-word;
 }
 
 @keyframes slideUp {
@@ -433,21 +435,29 @@ export default {
   .modal-overlay {
     padding: 1rem;
     align-items: flex-start;
-    padding-top: 2rem;
+    padding-top: 1rem;
   }
 
   .modal-container {
     margin: 0;
-    max-height: 90vh;
+    max-height: 95vh;
     width: 100%;
     max-width: 500px;
+    border-radius: 12px;
   }
 
   .modal-header {
     padding: 1rem 1.5rem;
+    border-radius: 12px 12px 0 0;
   }
 
   .modal-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .close-btn {
+    width: 36px;
+    height: 36px;
     font-size: 1.3rem;
   }
 
@@ -476,24 +486,36 @@ export default {
     justify-content: center;
     padding: 1rem 1.5rem;
     font-size: 1rem;
+    min-height: 44px;
   }
 }
 
 @media (max-width: 480px) {
   .modal-overlay {
-    padding: 0.75rem;
-    padding-top: 1rem;
+    padding: 0.5rem;
+    padding-top: 0.5rem;
+    align-items: stretch;
   }
 
   .modal-container {
-    max-height: 95vh;
+    max-height: 98vh;
+    height: auto;
+    border-radius: 8px;
   }
 
   .modal-header {
     padding: 1rem;
+    border-radius: 8px 8px 0 0;
   }
 
   .modal-header h2 {
+    font-size: 1.2rem;
+    gap: 0.5rem;
+  }
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
     font-size: 1.2rem;
   }
 
@@ -503,14 +525,21 @@ export default {
 
   .feature-highlight {
     padding: 1rem;
+    border-radius: 8px;
   }
 
   .feature-highlight i {
     font-size: 2rem;
+    margin-bottom: 0.75rem;
   }
 
   .feature-highlight h3 {
     font-size: 1.1rem;
+  }
+
+  .feature-card {
+    padding: 0.875rem;
+    border-radius: 8px;
   }
 
   .feature-card h4 {
@@ -519,12 +548,19 @@ export default {
 
   .btn {
     max-width: 100%;
-    padding: 0.875rem 1.25rem;
+    padding: 1rem 1.25rem;
     font-size: 0.95rem;
+    min-height: 48px;
+    border-radius: 8px;
   }
 
   .cta-text {
     font-size: 0.95rem;
+  }
+
+  .cta-section {
+    padding: 1rem;
+    border-radius: 8px;
   }
 }
 </style>

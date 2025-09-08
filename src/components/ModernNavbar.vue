@@ -1,41 +1,42 @@
 <template>
-  <nav class="modern-navbar">
+  <nav class="navbar">
     <div class="navbar-container">
-      <!-- Logo et titre -->
-      <div class="navbar-brand">
-        <router-link to="/" class="brand-link" @click="closeMobileMenu">
-          <div class="brand-icon">
-            <i class="fas fa-lightbulb"></i>
-          </div>
-          <span class="brand-text">IdéaLab</span>
-        </router-link>
-      </div>
+      <!-- Logo -->
+      <router-link to="/" class="navbar-brand" @click="closeAllMenus">
+        <div class="brand-icon">💡</div>
+        <span class="brand-text">IdéaLab</span>
+      </router-link>
 
-      <!-- Navigation principale (desktop) -->
-      <div class="navbar-nav desktop-nav">
-        <router-link to="/" class="nav-item" exact-active-class="active">
+      <!-- Navigation Desktop -->
+      <div class="navbar-menu desktop-only">
+        <router-link to="/" class="nav-link" @click="closeAllMenus">
           <i class="fas fa-home"></i>
           <span>Accueil</span>
         </router-link>
 
         <!-- Dropdown Idées -->
-        <div class="nav-dropdown" @mouseenter="showIdeasDropdown" @mouseleave="hideIdeasDropdown">
-          <button class="nav-item dropdown-trigger" :class="{ active: ideasDropdownOpen }">
+        <div class="nav-dropdown" ref="ideasDropdown">
+          <button 
+            class="nav-link dropdown-btn" 
+            @click="toggleIdeasDropdown"
+            :class="{ active: showIdeasDropdown }"
+          >
             <i class="fas fa-lightbulb"></i>
             <span>Idées</span>
-            <i class="fas fa-chevron-down dropdown-arrow"></i>
+            <i class="fas fa-chevron-down" :class="{ rotated: showIdeasDropdown }"></i>
           </button>
-          <div class="dropdown-menu" :class="{ show: ideasDropdownOpen }">
-            <router-link to="/all-ideas" class="dropdown-item" @click="closeDropdowns">
+          
+          <div class="dropdown-menu" :class="{ show: showIdeasDropdown }">
+            <router-link to="/all-ideas" class="dropdown-item" @click="closeAllMenus">
               <i class="fas fa-list"></i>
               <span>Toutes les idées</span>
             </router-link>
-            <router-link to="/ideas-in-development" class="dropdown-item" @click="closeDropdowns">
+            <router-link to="/ideas-in-development" class="dropdown-item" @click="closeAllMenus">
               <i class="fas fa-cogs"></i>
               <span>En développement</span>
             </router-link>
             <div class="dropdown-divider"></div>
-            <router-link to="/submit" class="dropdown-item highlight" @click="closeDropdowns">
+            <router-link to="/submit" class="dropdown-item highlight" @click="closeAllMenus">
               <i class="fas fa-plus-circle"></i>
               <span>Soumettre une idée</span>
             </router-link>
@@ -44,104 +45,109 @@
 
         <router-link 
           to="/dashboard" 
-          class="nav-item" 
+          class="nav-link" 
           v-if="authStore.isLoggedIn"
-          active-class="active"
+          @click="closeAllMenus"
         >
           <i class="fas fa-chart-line"></i>
           <span>Tableau de bord</span>
         </router-link>
       </div>
 
-      <!-- Actions utilisateur -->
-      <div class="navbar-actions">
+      <!-- Actions utilisateur Desktop -->
+      <div class="navbar-actions desktop-only">
         <!-- Utilisateur connecté -->
-        <div v-if="authStore.isLoggedIn" class="user-section">
-          <div class="user-dropdown" @mouseenter="showUserDropdown" @mouseleave="hideUserDropdown">
-            <button class="user-trigger" :class="{ active: userDropdownOpen }">
-              <div class="user-avatar">
+        <div v-if="authStore.isLoggedIn" class="user-menu" ref="userDropdown">
+          <button 
+            class="user-btn" 
+            @click="toggleUserDropdown"
+            :class="{ active: showUserDropdown }"
+          >
+            <div class="user-avatar">
+              <img v-if="authStore.user?.avatar" :src="authStore.user.avatar" :alt="authStore.userName">
+              <i v-else class="fas fa-user-circle"></i>
+            </div>
+            <span class="user-name">{{ authStore.userName }}</span>
+            <i class="fas fa-chevron-down" :class="{ rotated: showUserDropdown }"></i>
+          </button>
+          
+          <div class="dropdown-menu user-dropdown-menu" :class="{ show: showUserDropdown }">
+            <div class="user-info">
+              <div class="user-avatar large">
                 <img v-if="authStore.user?.avatar" :src="authStore.user.avatar" :alt="authStore.userName">
                 <i v-else class="fas fa-user-circle"></i>
               </div>
-              <span class="user-name">{{ authStore.userName }}</span>
-              <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu user-menu" :class="{ show: userDropdownOpen }">
-              <div class="user-info">
-                <div class="user-avatar large">
-                  <img v-if="authStore.user?.avatar" :src="authStore.user.avatar" :alt="authStore.userName">
-                  <i v-else class="fas fa-user-circle"></i>
-                </div>
-                <div class="user-details">
-                  <span class="user-name">{{ authStore.userName }}</span>
-                  <span class="user-email">{{ authStore.user?.email }}</span>
-                </div>
+              <div class="user-details">
+                <span class="user-name">{{ authStore.userName }}</span>
+                <span class="user-email">{{ authStore.user?.email }}</span>
               </div>
-              <div class="dropdown-divider"></div>
-              <router-link to="/profile" class="dropdown-item" @click="closeDropdowns">
-                <i class="fas fa-user"></i>
-                <span>Mon profil</span>
-              </router-link>
-              <router-link to="/dashboard" class="dropdown-item" @click="closeDropdowns">
-                <i class="fas fa-chart-line"></i>
-                <span>Tableau de bord</span>
-              </router-link>
-              <router-link to="/settings" class="dropdown-item" @click="closeDropdowns">
-                <i class="fas fa-cog"></i>
-                <span>Paramètres</span>
-              </router-link>
-              <div class="dropdown-divider"></div>
-              <button @click="logout" class="dropdown-item logout-item">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Déconnexion</span>
-              </button>
             </div>
+            <div class="dropdown-divider"></div>
+            <router-link to="/profile" class="dropdown-item" @click="closeAllMenus">
+              <i class="fas fa-user"></i>
+              <span>Mon profil</span>
+            </router-link>
+            <router-link to="/settings" class="dropdown-item" @click="closeAllMenus">
+              <i class="fas fa-cog"></i>
+              <span>Paramètres</span>
+            </router-link>
+            <div class="dropdown-divider"></div>
+            <button @click="logout" class="dropdown-item logout-btn">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Déconnexion</span>
+            </button>
           </div>
         </div>
 
         <!-- Utilisateur non connecté -->
-        <div v-else class="auth-section">
-          <router-link to="/login" class="auth-btn login-btn">
+        <div v-else class="auth-buttons">
+          <router-link to="/login" class="btn btn-outline" @click="closeAllMenus">
             <i class="fas fa-sign-in-alt"></i>
             <span>Connexion</span>
           </router-link>
-          <router-link to="/register" class="auth-btn register-btn">
+          <router-link to="/register" class="btn btn-primary" @click="closeAllMenus">
             <i class="fas fa-user-plus"></i>
             <span>S'inscrire</span>
           </router-link>
         </div>
-
-        <!-- Bouton menu mobile -->
-        <button class="mobile-menu-btn" @click="toggleMobileMenu" :class="{ active: mobileMenuOpen }">
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-        </button>
       </div>
+
+      <!-- Bouton Menu Mobile -->
+      <button 
+        class="mobile-menu-toggle mobile-only" 
+        @click="toggleMobileMenu"
+        :class="{ active: showMobileMenu }"
+        aria-label="Menu de navigation"
+      >
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
     </div>
 
-    <!-- Menu mobile -->
-    <div class="mobile-menu" :class="{ open: mobileMenuOpen }">
+    <!-- Menu Mobile -->
+    <div class="mobile-menu" :class="{ open: showMobileMenu }">
       <div class="mobile-menu-content">
-        <router-link to="/" class="mobile-nav-item" @click="closeMobileMenu">
+        <router-link to="/" class="mobile-nav-item" @click="closeAllMenus">
           <i class="fas fa-home"></i>
           <span>Accueil</span>
         </router-link>
 
+        <!-- Section Idées Mobile -->
         <div class="mobile-nav-section">
-          <div class="mobile-nav-title">
+          <div class="mobile-section-title">
             <i class="fas fa-lightbulb"></i>
             <span>Idées</span>
           </div>
-          <router-link to="/all-ideas" class="mobile-nav-item sub" @click="closeMobileMenu">
+          <router-link to="/all-ideas" class="mobile-nav-item indent" @click="closeAllMenus">
             <i class="fas fa-list"></i>
             <span>Toutes les idées</span>
           </router-link>
-          <router-link to="/ideas-in-development" class="mobile-nav-item sub" @click="closeMobileMenu">
+          <router-link to="/ideas-in-development" class="mobile-nav-item indent" @click="closeAllMenus">
             <i class="fas fa-cogs"></i>
             <span>En développement</span>
           </router-link>
-          <router-link to="/submit" class="mobile-nav-item sub highlight" @click="closeMobileMenu">
+          <router-link to="/submit" class="mobile-nav-item indent highlight" @click="closeAllMenus">
             <i class="fas fa-plus-circle"></i>
             <span>Soumettre une idée</span>
           </router-link>
@@ -151,13 +157,13 @@
           to="/dashboard" 
           class="mobile-nav-item" 
           v-if="authStore.isLoggedIn"
-          @click="closeMobileMenu"
+          @click="closeAllMenus"
         >
           <i class="fas fa-chart-line"></i>
           <span>Tableau de bord</span>
         </router-link>
 
-        <!-- Section utilisateur mobile -->
+        <!-- Section Utilisateur Mobile -->
         <div v-if="authStore.isLoggedIn" class="mobile-user-section">
           <div class="mobile-user-info">
             <div class="user-avatar">
@@ -169,27 +175,27 @@
               <span class="user-email">{{ authStore.user?.email }}</span>
             </div>
           </div>
-          <router-link to="/profile" class="mobile-nav-item" @click="closeMobileMenu">
+          <router-link to="/profile" class="mobile-nav-item" @click="closeAllMenus">
             <i class="fas fa-user"></i>
             <span>Mon profil</span>
           </router-link>
-          <router-link to="/settings" class="mobile-nav-item" @click="closeMobileMenu">
+          <router-link to="/settings" class="mobile-nav-item" @click="closeAllMenus">
             <i class="fas fa-cog"></i>
             <span>Paramètres</span>
           </router-link>
-          <button @click="logout" class="mobile-nav-item logout-item">
+          <button @click="logout" class="mobile-nav-item logout-btn">
             <i class="fas fa-sign-out-alt"></i>
             <span>Déconnexion</span>
           </button>
         </div>
 
-        <!-- Auth mobile -->
+        <!-- Auth Mobile -->
         <div v-else class="mobile-auth-section">
-          <router-link to="/login" class="mobile-auth-btn login" @click="closeMobileMenu">
+          <router-link to="/login" class="mobile-auth-btn login" @click="closeAllMenus">
             <i class="fas fa-sign-in-alt"></i>
             <span>Connexion</span>
           </router-link>
-          <router-link to="/register" class="mobile-auth-btn register" @click="closeMobileMenu">
+          <router-link to="/register" class="mobile-auth-btn register" @click="closeAllMenus">
             <i class="fas fa-user-plus"></i>
             <span>Créer un compte</span>
           </router-link>
@@ -197,8 +203,12 @@
       </div>
     </div>
 
-    <!-- Overlay pour fermer le menu mobile -->
-    <div v-if="mobileMenuOpen" class="mobile-overlay" @click="closeMobileMenu"></div>
+    <!-- Overlay Mobile -->
+    <div 
+      v-if="showMobileMenu" 
+      class="mobile-overlay" 
+      @click="closeAllMenus"
+    ></div>
   </nav>
 </template>
 
@@ -213,98 +223,82 @@ export default {
   },
   data() {
     return {
-      mobileMenuOpen: false,
-      ideasDropdownOpen: false,
-      userDropdownOpen: false
+      showMobileMenu: false,
+      showIdeasDropdown: false,
+      showUserDropdown: false
     }
   },
   methods: {
     toggleMobileMenu() {
-      this.mobileMenuOpen = !this.mobileMenuOpen
-      if (this.mobileMenuOpen) {
+      console.log('🔄 Toggle mobile menu')
+      this.showMobileMenu = !this.showMobileMenu
+      this.showIdeasDropdown = false
+      this.showUserDropdown = false
+      
+      // Empêcher le scroll du body quand le menu est ouvert
+      if (this.showMobileMenu) {
         document.body.style.overflow = 'hidden'
       } else {
         document.body.style.overflow = ''
       }
     },
 
-    closeMobileMenu() {
-      this.mobileMenuOpen = false
+    toggleIdeasDropdown() {
+      console.log('🔄 Toggle ideas dropdown')
+      this.showIdeasDropdown = !this.showIdeasDropdown
+      this.showUserDropdown = false
+    },
+
+    toggleUserDropdown() {
+      console.log('🔄 Toggle user dropdown')
+      this.showUserDropdown = !this.showUserDropdown
+      this.showIdeasDropdown = false
+    },
+
+    closeAllMenus() {
+      console.log('❌ Close all menus')
+      this.showMobileMenu = false
+      this.showIdeasDropdown = false
+      this.showUserDropdown = false
       document.body.style.overflow = ''
-    },
-
-    showIdeasDropdown() {
-      this.ideasDropdownOpen = true
-    },
-
-    hideIdeasDropdown() {
-      setTimeout(() => {
-        this.ideasDropdownOpen = false
-      }, 150)
-    },
-
-    showUserDropdown() {
-      this.userDropdownOpen = true
-    },
-
-    hideUserDropdown() {
-      setTimeout(() => {
-        this.userDropdownOpen = false
-      }, 150)
-    },
-
-    closeDropdowns() {
-      this.ideasDropdownOpen = false
-      this.userDropdownOpen = false
     },
 
     async logout() {
       try {
         await this.authStore.logout()
-        this.closeMobileMenu()
-        this.closeDropdowns()
+        this.closeAllMenus()
         this.$router.push('/')
       } catch (error) {
         console.error('Erreur lors de la déconnexion:', error)
+      }
+    },
+
+    handleClickOutside(event) {
+      // Fermer les dropdowns si on clique à l'extérieur
+      if (this.$refs.ideasDropdown && !this.$refs.ideasDropdown.contains(event.target)) {
+        this.showIdeasDropdown = false
+      }
+      if (this.$refs.userDropdown && !this.$refs.userDropdown.contains(event.target)) {
+        this.showUserDropdown = false
       }
     }
   },
 
   mounted() {
-    // Fermer les dropdowns en cliquant ailleurs
-    document.addEventListener('click', (e) => {
-      if (!this.$el.contains(e.target)) {
-        this.closeDropdowns()
-      }
-    })
+    // Écouter les clics à l'extérieur pour fermer les dropdowns
+    document.addEventListener('click', this.handleClickOutside)
   },
 
   beforeUnmount() {
+    document.removeEventListener('click', this.handleClickOutside)
     document.body.style.overflow = ''
   }
 }
 </script>
 
 <style scoped>
-/* Variables CSS */
-:root {
-  --navbar-height: 70px;
-  --primary-color: #667eea;
-  --primary-dark: #5a67d8;
-  --secondary-color: #764ba2;
-  --text-color: #2d3748;
-  --text-light: #718096;
-  --border-color: #e2e8f0;
-  --bg-white: #ffffff;
-  --bg-light: #f8fafc;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --border-radius: 8px;
-  --transition: all 0.3s ease;
-}
-
-/* Navbar principale */
-.modern-navbar {
+/* ===== NAVBAR PRINCIPAL ===== */
+.navbar {
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -312,24 +306,23 @@ export default {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
   backdrop-filter: blur(10px);
+  width: 100%;
+  height: 70px;
 }
 
 .navbar-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
-  height: var(--navbar-height);
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
 }
 
-/* Brand */
+/* ===== LOGO/BRAND ===== */
 .navbar-brand {
-  flex-shrink: 0;
-}
-
-.brand-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -338,9 +331,10 @@ export default {
   font-weight: 700;
   font-size: 1.5rem;
   transition: var(--transition);
+  flex-shrink: 0;
 }
 
-.brand-link:hover {
+.navbar-brand:hover {
   color: rgba(255, 255, 255, 0.9);
   transform: scale(1.05);
 }
@@ -356,10 +350,10 @@ export default {
   justify-content: center;
   color: white;
   font-size: 1.2rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 
-.brand-link:hover .brand-icon {
+.navbar-brand:hover .brand-icon {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
 }
@@ -369,50 +363,54 @@ export default {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Navigation desktop */
-.desktop-nav {
+/* ===== NAVIGATION DESKTOP ===== */
+.navbar-menu {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex: 1;
+  justify-content: center;
 }
 
-.nav-item {
+.nav-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   font-weight: 500;
-  transition: var(--transition);
-  position: relative;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
 }
 
-.nav-item:hover,
-.nav-item.active {
+.nav-link:hover,
+.nav-link.active,
+.nav-link.router-link-active {
   color: white;
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
-/* Dropdown */
+/* ===== DROPDOWNS ===== */
 .nav-dropdown {
   position: relative;
 }
 
-.dropdown-trigger {
-  background: none;
-  border: none;
-  cursor: pointer;
+.dropdown-btn {
+  position: relative;
 }
 
-.dropdown-arrow {
+.dropdown-btn .fa-chevron-down {
   font-size: 0.75rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 
-.dropdown-trigger.active .dropdown-arrow {
+.dropdown-btn .fa-chevron-down.rotated {
   transform: rotate(180deg);
 }
 
@@ -421,15 +419,16 @@ export default {
   top: 100%;
   left: 0;
   min-width: 220px;
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
-  transition: var(--transition);
+  transition: all 0.3s ease;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .dropdown-menu.show {
@@ -443,54 +442,62 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  color: var(--text-color);
+  color: #2d3748;
   text-decoration: none;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   border: none;
   background: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
+  font-size: 0.95rem;
 }
 
 .dropdown-item:hover {
-  background: var(--bg-light);
-  color: var(--primary-color);
+  background: #f8fafc;
+  color: #667eea;
 }
 
 .dropdown-item.highlight {
-  color: var(--primary-color);
+  color: #667eea;
   font-weight: 600;
 }
 
 .dropdown-divider {
   height: 1px;
-  background: var(--border-color);
+  background: #e2e8f0;
   margin: 0.5rem 0;
 }
 
-/* Actions utilisateur */
+/* ===== ACTIONS UTILISATEUR ===== */
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-shrink: 0;
 }
 
-/* Section utilisateur */
-.user-trigger {
+/* ===== MENU UTILISATEUR ===== */
+.user-menu {
+  position: relative;
+}
+
+.user-btn {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  color: white;
+  font-size: 0.95rem;
 }
 
-.user-trigger:hover,
-.user-trigger.active {
+.user-btn:hover,
+.user-btn.active {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
 }
@@ -503,7 +510,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-light);
+  background: #f8fafc;
 }
 
 .user-avatar img {
@@ -514,7 +521,7 @@ export default {
 
 .user-avatar i {
   font-size: 1.5rem;
-  color: var(--text-light);
+  color: #718096;
 }
 
 .user-avatar.large {
@@ -529,10 +536,10 @@ export default {
 
 .user-email {
   font-size: 0.875rem;
-  color: var(--text-light);
+  color: #718096;
 }
 
-.user-menu {
+.user-dropdown-menu {
   right: 0;
   left: auto;
   min-width: 280px;
@@ -543,7 +550,7 @@ export default {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .user-details {
@@ -552,102 +559,116 @@ export default {
   gap: 0.25rem;
 }
 
-.logout-item {
+.logout-btn {
   color: #e53e3e !important;
 }
 
-.logout-item:hover {
+.logout-btn:hover {
   background: rgba(229, 62, 62, 0.1) !important;
 }
 
-/* Auth section */
-.auth-section {
+/* ===== BOUTONS AUTH ===== */
+.auth-buttons {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.auth-btn {
+.btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   text-decoration: none;
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   font-weight: 500;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
 }
 
-.login-btn {
+.btn-outline {
   color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
-.login-btn:hover {
+.btn-outline:hover {
   color: white;
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.register-btn {
+.btn-primary {
   background: rgba(255, 255, 255, 0.2);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
-.register-btn:hover {
+.btn-primary:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Bouton menu mobile */
-.mobile-menu-btn {
+/* ===== BOUTON MENU MOBILE ===== */
+.mobile-menu-toggle {
   display: none;
   flex-direction: column;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: none;
-  border: none;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   cursor: pointer;
   padding: 0;
   gap: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1001;
+}
+
+.mobile-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .hamburger-line {
   width: 24px;
   height: 2px;
   background: white;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   transform-origin: center;
 }
 
-.mobile-menu-btn.active .hamburger-line:nth-child(1) {
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
   transform: rotate(45deg) translate(6px, 6px);
 }
 
-.mobile-menu-btn.active .hamburger-line:nth-child(2) {
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
   opacity: 0;
 }
 
-.mobile-menu-btn.active .hamburger-line:nth-child(3) {
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
   transform: rotate(-45deg) translate(6px, -6px);
 }
 
-/* Menu mobile */
+/* ===== MENU MOBILE ===== */
 .mobile-menu {
   position: fixed;
-  top: var(--navbar-height);
+  top: 70px;
   right: 0;
   width: 320px;
-  height: calc(100vh - var(--navbar-height));
+  height: calc(100vh - 70px);
   background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   transform: translateX(100%);
-  transition: var(--transition);
+  transition: transform 0.3s ease;
   overflow-y: auto;
-  z-index: 999;
+  z-index: 9999;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .mobile-menu.open {
@@ -665,14 +686,15 @@ export default {
   padding: 1rem;
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   margin-bottom: 0.5rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   border: none;
   background: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
+  font-size: 1rem;
 }
 
 .mobile-nav-item:hover {
@@ -680,7 +702,7 @@ export default {
   color: white;
 }
 
-.mobile-nav-item.sub {
+.mobile-nav-item.indent {
   margin-left: 1rem;
   padding-left: 2rem;
 }
@@ -695,7 +717,7 @@ export default {
   margin-bottom: 1rem;
 }
 
-.mobile-nav-title {
+.mobile-section-title {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -719,7 +741,7 @@ export default {
   gap: 1rem;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   margin-bottom: 1rem;
 }
 
@@ -730,10 +752,10 @@ export default {
   gap: 0.75rem;
   padding: 1rem;
   text-decoration: none;
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   font-weight: 500;
   margin-bottom: 0.75rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 
 .mobile-auth-btn.login {
@@ -749,30 +771,34 @@ export default {
 
 .mobile-overlay {
   position: fixed;
-  top: var(--navbar-height);
+  top: 70px;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  z-index: 9998;
 }
 
-/* Responsive */
+/* ===== RESPONSIVE ===== */
+/* Desktop */
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+
+  .desktop-only {
+    display: flex !important;
+  }
+}
+
+/* Mobile et Tablette */
 @media (max-width: 768px) {
-  .desktop-nav {
-    display: none;
+  .desktop-only {
+    display: none !important;
   }
 
-  .auth-section {
-    display: none;
-  }
-
-  .user-section {
-    display: none;
-  }
-
-  .mobile-menu-btn {
-    display: flex;
+  .mobile-only {
+    display: flex !important;
   }
 
   .brand-text {
@@ -784,6 +810,7 @@ export default {
   }
 }
 
+/* Petits mobiles */
 @media (max-width: 480px) {
   .mobile-menu {
     width: 100%;
@@ -798,5 +825,45 @@ export default {
     height: 36px;
     font-size: 1.1rem;
   }
+
+  .mobile-menu-toggle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hamburger-line {
+    width: 20px;
+  }
+}
+
+/* Très petits écrans */
+@media (max-width: 320px) {
+  .navbar-container {
+    padding: 0 0.5rem;
+  }
+
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .mobile-menu-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger-line {
+    width: 18px;
+  }
+}
+
+/* Utilitaires */
+.desktop-only {
+  display: flex;
+}
+
+.mobile-only {
+  display: none;
 }
 </style>

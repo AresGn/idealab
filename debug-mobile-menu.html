@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Menu Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .brand {
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .mobile-menu-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hamburger-line {
+            width: 24px;
+            height: 2px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 70px;
+            right: 0;
+            width: 320px;
+            height: calc(100vh - 70px);
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-content {
+            padding: 1rem;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-nav-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .debug-info {
+            position: fixed;
+            top: 80px;
+            left: 10px;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            font-size: 0.9rem;
+        }
+
+        .content {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .test-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .mobile-menu {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">IdéaLab</div>
+        <button class="mobile-menu-btn" onclick="toggleMenu()">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-content">
+            <a href="#" class="mobile-nav-item" onclick="closeMenu()">
+                🏠 Accueil
+            </a>
+            <a href="#" class="mobile-nav-item" onclick="closeMenu()">
+                💡 Toutes les idées
+            </a>
+            <a href="#" class="mobile-nav-item" onclick="closeMenu()">
+                ⚙️ En développement
+            </a>
+            <a href="#" class="mobile-nav-item" onclick="closeMenu()">
+                ➕ Soumettre une idée
+            </a>
+            <a href="#" class="mobile-nav-item" onclick="closeMenu()">
+                📊 Tableau de bord
+            </a>
+            <a href="#" class="mobile-nav-item" onclick="closeMenu()">
+                👤 Connexion
+            </a>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+    <div class="debug-info" id="debugInfo">
+        <strong>Debug Info:</strong><br>
+        Menu ouvert: <span id="menuStatus">false</span><br>
+        Transform: <span id="transformValue">translateX(100%)</span><br>
+        Z-index: <span id="zindexValue">9999</span><br>
+        Visibility: <span id="visibilityValue">hidden</span>
+    </div>
+
+    <div class="content">
+        <h1>🧪 Test du Menu Mobile</h1>
+        <p>Cliquez sur le bouton hamburger pour tester le menu mobile.</p>
+        
+        <div style="margin: 2rem 0;">
+            <button class="test-btn" onclick="forceShowMenu()">🔧 Forcer l'affichage du menu</button>
+            <button class="test-btn" onclick="forceHideMenu()">❌ Forcer la fermeture du menu</button>
+            <button class="test-btn" onclick="debugMenu()">🔍 Debug complet</button>
+        </div>
+
+        <div id="debugOutput" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: monospace; white-space: pre-wrap;"></div>
+    </div>
+
+    <script>
+        let menuOpen = false;
+
+        function toggleMenu() {
+            console.log('🔄 Toggle menu appelé, état actuel:', menuOpen);
+            menuOpen = !menuOpen;
+            updateMenu();
+        }
+
+        function closeMenu() {
+            console.log('❌ Close menu appelé');
+            menuOpen = false;
+            updateMenu();
+        }
+
+        function updateMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('overlay');
+            
+            console.log('📱 Mise à jour du menu, nouvel état:', menuOpen);
+            
+            if (menuOpen) {
+                menu.classList.add('open');
+                overlay.classList.add('show');
+                document.body.style.overflowY = 'hidden';
+            } else {
+                menu.classList.remove('open');
+                overlay.classList.remove('show');
+                document.body.style.overflowY = '';
+            }
+            
+            updateDebugInfo();
+        }
+
+        function updateDebugInfo() {
+            const menu = document.getElementById('mobileMenu');
+            const computedStyle = window.getComputedStyle(menu);
+            
+            document.getElementById('menuStatus').textContent = menuOpen;
+            document.getElementById('transformValue').textContent = computedStyle.transform;
+            document.getElementById('zindexValue').textContent = computedStyle.zIndex;
+            document.getElementById('visibilityValue').textContent = computedStyle.visibility;
+        }
+
+        function forceShowMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.transform = 'translateX(0)';
+            menu.style.zIndex = '10000';
+            menu.style.visibility = 'visible';
+            console.log('🔧 Menu forcé à être visible');
+            updateDebugInfo();
+        }
+
+        function forceHideMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.transform = 'translateX(100%)';
+            console.log('🔧 Menu forcé à être caché');
+            updateDebugInfo();
+        }
+
+        function debugMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const computedStyle = window.getComputedStyle(menu);
+            
+            const debugInfo = {
+                'Position': computedStyle.position,
+                'Top': computedStyle.top,
+                'Right': computedStyle.right,
+                'Width': computedStyle.width,
+                'Height': computedStyle.height,
+                'Transform': computedStyle.transform,
+                'Z-index': computedStyle.zIndex,
+                'Visibility': computedStyle.visibility,
+                'Display': computedStyle.display,
+                'Overflow': computedStyle.overflow,
+                'Background': computedStyle.background,
+                'Classes': menu.className,
+                'Menu ouvert': menuOpen
+            };
+            
+            let output = '🔍 DEBUG COMPLET DU MENU MOBILE:\n\n';
+            for (const [key, value] of Object.entries(debugInfo)) {
+                output += `${key}: ${value}\n`;
+            }
+            
+            output += '\n📊 Dimensions de la fenêtre:\n';
+            output += `Largeur: ${window.innerWidth}px\n`;
+            output += `Hauteur: ${window.innerHeight}px\n`;
+            
+            output += '\n🎯 Position du menu:\n';
+            const rect = menu.getBoundingClientRect();
+            output += `Left: ${rect.left}px\n`;
+            output += `Top: ${rect.top}px\n`;
+            output += `Right: ${rect.right}px\n`;
+            output += `Bottom: ${rect.bottom}px\n`;
+            
+            document.getElementById('debugOutput').textContent = output;
+            console.log(output);
+        }
+
+        // Initialiser le debug
+        updateDebugInfo();
+        
+        // Test automatique au chargement
+        setTimeout(() => {
+            console.log('🚀 Test automatique du menu...');
+            debugMenu();
+        }, 1000);
+    </script>
+</body>
+</html>
