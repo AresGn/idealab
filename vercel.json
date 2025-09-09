@@ -9,14 +9,14 @@
       }
     },
     {
-      "src": "api/**/*.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/api/index.js"
     },
     {
       "source": "/((?!api).*)",
@@ -24,7 +24,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VERCEL": "1"
   },
   "regions": ["fra1"]
 }
