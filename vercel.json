@@ -17,13 +17,12 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
-    },
+    }
+  ],
+  "rewrites": [
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "source": "/(.*)",
+      "destination": "/"
     }
   ],
   "env": {
