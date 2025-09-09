@@ -60,12 +60,56 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/ideas', sharingRoutes)
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  })
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    const dbTest = await testConnection()
+
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      database: dbTest ? 'Connected' : 'Disconnected',
+      cors_origin: process.env.CORS_ORIGIN,
+      database_configured: !!(process.env.DATABASE_URL || process.env.DB_HOST)
+    })
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'Error',
+      error: error.message
+    })
+  }
+})
+
+// Test endpoint for debugging idea creation
+app.post('/api/test/idea', async (req, res) => {
+  try {
+    console.log('Test endpoint called')
+    console.log('Headers:', req.headers)
+    console.log('Body:', req.body)
+
+    // Test database connection
+    const { query } = await import('./database.js')
+    const testResult = await query('SELECT NOW() as current_time')
+
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      body_received: req.body,
+      database_test: testResult.rows[0],
+      environment: process.env.NODE_ENV
+    })
+  } catch (error) {
+    console.error('Test endpoint error:', error)
+    res.status(500).json({
+      status: 'ERROR',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    })
+  }
 })
 
 // 404 handler for API routes (must be before catch-all)
