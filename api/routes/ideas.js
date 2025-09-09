@@ -373,6 +373,10 @@ router.get('/:id', async (req, res) => {
 // POST /api/ideas - Create a new idea
 router.post('/', authenticateToken, async (req, res) => {
   try {
+    console.log('POST /api/ideas - Request received')
+    console.log('User:', req.user)
+    console.log('Request body keys:', Object.keys(req.body))
+
     const {
       title,
       description,
@@ -398,16 +402,44 @@ router.post('/', authenticateToken, async (req, res) => {
       ideate_inspiration_references
     } = req.body
 
-    // Validation
-    if (!title || !sector) {
+    console.log('Parsed data:', {
+      title: title?.substring(0, 50),
+      sector,
+      design_thinking_mode,
+      user_id
+    })
+
+    // Validation de base
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      console.log('Validation failed: title missing or invalid')
       return res.status(400).json({
-        error: 'Title and sector are required'
+        error: 'Le titre est requis et doit être une chaîne non vide',
+        code: 'INVALID_TITLE'
+      })
+    }
+
+    if (!sector || typeof sector !== 'string' || sector.trim().length === 0) {
+      console.log('Validation failed: sector missing or invalid')
+      return res.status(400).json({
+        error: 'Le secteur est requis et doit être une chaîne non vide',
+        code: 'INVALID_SECTOR'
       })
     }
 
     if (title.length > 200) {
+      console.log('Validation failed: title too long')
       return res.status(400).json({
-        error: 'Title must be less than 200 characters'
+        error: 'Le titre doit faire moins de 200 caractères',
+        code: 'TITLE_TOO_LONG'
+      })
+    }
+
+    // Validation de l'utilisateur
+    if (!user_id || !req.user || !req.user.id) {
+      console.log('Validation failed: user authentication issue')
+      return res.status(401).json({
+        error: 'Authentification utilisateur requise',
+        code: 'AUTH_REQUIRED'
       })
     }
 
@@ -437,6 +469,8 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
+    console.log('Preparing database insertion...')
+
     const insertQuery = `
       INSERT INTO ideas (
         title, description, sector, target_audience,
@@ -450,26 +484,32 @@ router.post('/', authenticateToken, async (req, res) => {
       RETURNING *
     `
 
-    const result = await query(insertQuery, [
-      title,
-      description || '', // Description peut être vide en mode Design Thinking
-      sector,
-      target_audience,
-      willingness_to_pay,
-      estimated_budget,
+    const queryParams = [
+      title.trim(),
+      description ? description.trim() : '', // Description peut être vide en mode Design Thinking
+      sector.trim(),
+      target_audience ? target_audience.trim() : null,
+      willingness_to_pay || null,
+      estimated_budget || null,
       user_id,
       design_thinking_mode,
-      completion_percentage,
-      empathy_target_users,
-      empathy_needs_frustrations,
-      empathy_usage_context,
-      define_problem_statement,
-      define_importance_reason,
-      define_objective,
-      ideate_proposed_solution,
-      ideate_alternatives_considered,
-      ideate_inspiration_references
-    ])
+      completion_percentage || 0,
+      empathy_target_users ? empathy_target_users.trim() : null,
+      empathy_needs_frustrations ? empathy_needs_frustrations.trim() : null,
+      empathy_usage_context ? empathy_usage_context.trim() : null,
+      define_problem_statement ? define_problem_statement.trim() : null,
+      define_importance_reason ? define_importance_reason.trim() : null,
+      define_objective ? define_objective.trim() : null,
+      ideate_proposed_solution ? ideate_proposed_solution.trim() : null,
+      ideate_alternatives_considered ? ideate_alternatives_considered.trim() : null,
+      ideate_inspiration_references ? ideate_inspiration_references.trim() : null
+    ]
+
+    console.log('Executing database query with params count:', queryParams.length)
+
+    const result = await query(insertQuery, queryParams)
+
+    console.log('Idea created successfully:', result.rows[0]?.id)
 
     res.status(201).json({
       message: `Idea created successfully${design_thinking_mode ? ' with Design Thinking methodology' : ''}`,
@@ -478,7 +518,46 @@ router.post('/', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Error creating idea:', error)
-    res.status(500).json({ error: 'Failed to create idea' })
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      stack: error.stack
+    })
+
+    // Provide more specific error messages
+    if (error.code === '23505') { // Unique constraint violation
+      res.status(400).json({
+        error: 'Une idée avec ce titre existe déjà',
+        code: 'DUPLICATE_TITLE'
+      })
+    } else if (error.code === '23502') { // Not null constraint violation
+      res.status(400).json({
+        error: 'Champs requis manquants',
+        code: 'MISSING_REQUIRED_FIELDS',
+        detail: error.detail
+      })
+    } else if (error.code === '23514') { // Check constraint violation
+      res.status(400).json({
+        error: 'Données invalides',
+        code: 'INVALID_DATA',
+        detail: error.detail
+      })
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      res.status(503).json({
+        error: 'Service de base de données temporairement indisponible',
+        code: 'DATABASE_UNAVAILABLE'
+      })
+    } else {
+      res.status(500).json({
+        error: 'Erreur interne du serveur',
+        code: 'INTERNAL_ERROR',
+        ...(process.env.NODE_ENV === 'development' && {
+          message: error.message,
+          detail: error.detail
+        })
+      })
+    }
   }
 })
 

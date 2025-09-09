@@ -18,7 +18,7 @@ export const authenticateToken = async (req, res, next) => {
 
     // Vérifier que l'utilisateur existe toujours et est actif
     const userQuery = `
-      SELECT id, email, username, role, is_active, last_login
+      SELECT id, email, username, role, is_active
       FROM users
       WHERE id = $1
     `
@@ -56,8 +56,7 @@ export const authenticateToken = async (req, res, next) => {
       id: decoded.userId,
       email: decoded.email,
       username: decoded.username,
-      role: decoded.role || user.role,
-      last_login: user.last_login
+      role: decoded.role || user.role
     }
 
     next()
