@@ -290,3 +290,9 @@ metrics/
 # - Utilisez des variables d'environnement pour tous les secrets
 # - Activez HTTPS et les en-têtes de sécurité
 # - Configurez des sauvegardes automatiques sécurisées
+
+# Secrets
+.env
+.env.production
+.env.production.*
+!.env.production.example
